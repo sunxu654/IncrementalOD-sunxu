@@ -10,7 +10,10 @@ import java.util.ArrayList;
 
 
 public class Test {
+	//public static ArrayList<VoterObject> objectList = new ArrayList<VoterObject>();
+	
 	public static void main(String[] args) {
+		final int order = 10;
 		CSVtoDataObject cdo = new CSVtoDataObject();
 		//CSVtoDataObject increData=new CSVtoDataObject();
 		ODs od=new ODs();
@@ -25,14 +28,11 @@ public class Test {
 		od.print();
 		
 		ArrayList<VoterObject> objectList = cdo.datatoObject();
-		/*for(int i=0;i<objectList.size();i++) {
-			VoterObject temp=objectList.get(i);
-			temp.printData();					
-		}*/
 		
 		//先拿第0条数据来当做是增量数据
 		VoterObject increData=objectList.get(0);
-		int order = 10;
+		
+		
 		BplusTree<Integer,ArrayList<Integer>> tree = new BplusTree<Integer, ArrayList<Integer>>(order);
 		System.out.println("将元组插入度为"+ order+"的B+树中");
 		int key=1;
@@ -50,11 +50,13 @@ public class Test {
 		
 		Entry<Integer,ArrayList<Integer>> ee = tree.getPre(increData.getAge(),increData.getVoter_id());
 		System.out.println("前缀为"+ee.getKey()+"/"+ee.getValue());
+		
+		
 		ee = tree.getNext(increData.getAge(),increData.getVoter_id()); 
 		System.out.println("后缀为"+ee.getKey()+"/"+ee.getValue());
 
 		
-		//存储所有新生成的od
+		//存储所有原有的od
 		ArrayList<OrderDependency> originalODList=new ArrayList<OrderDependency>();
 		for(OrderDependency o:od.ods) {
 			originalODList.add(o);
@@ -65,6 +67,8 @@ public class Test {
 			//TODO 假设我通过索引查到了前后数据，拿到了前后数据的tupleID，叫tName
 			int preTupleId=2,nextTupleId=3,curTupleId=1;
 			
+			//ArrayList<Integer> preList=
+		
 			VoterObject preData=objectList.get(preTupleId);
 			VoterObject nextData=objectList.get(nextTupleId);
 			VoterObject curData=objectList.get(curTupleId);
@@ -73,12 +77,16 @@ public class Test {
 			String detectRes=d.detectSingleOD(nowOd);
 			
 			if(detectRes.equals("valid")==false) {
+				System.out.print("checking ");
+				nowOd.printOD();
 				System.out.println(detectRes);
+				
 				od.ods.remove(nowOd);
+				
 				//扩展od
-				Extend e=new Extend(preData ,nextData,curData,increData);
+				Extend et=new Extend(objectList,preList ,nextList,curList,increList);
 				ArrayList<OrderDependency> newOdList=new ArrayList<OrderDependency>();
-				newOdList=e.extend(nowOd,detectRes);
+				newOdList=et.extend(nowOd,detectRes);
 			
 				if(!newOdList.isEmpty()) {
 					for(OrderDependency no:newOdList) {
