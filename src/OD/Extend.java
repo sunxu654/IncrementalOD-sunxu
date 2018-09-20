@@ -51,9 +51,11 @@ public class Extend {
 	}
 	
 	//左边加属性
-	public ArrayList<OrderDependency> increaseLHS(OrderDependency od){
+	//TODO::左边加属性的深搜
+	public ArrayList<OrderDependency> increaseLHS(OrderDependency od,ArrayList<Integer> curList){
 		ArrayList<OrderDependency> res=new ArrayList<OrderDependency>();
 		
+		//get the name of all attributes
 		ArrayList<String> attrName=VoterObject.getAttributeName();
 		HashMap<String,Integer> m = new HashMap<String,Integer>();
 		OrderDependency odIncre=new OrderDependency();
@@ -75,16 +77,26 @@ public class Extend {
 				m.put(adder,new Integer(1));
 				int bigger=biggerThan(objectList.get(curList.get(0)),objectList.get(increList.get(0)),od);
 				boolean flag=true;
+				ArrayList<Integer> splitList=new ArrayList<Integer> ();
 				for(int li:curList) {
-	
-					if(bigger!=objectList.get(curList.get(li)).getString(adder).compareTo(objectList.get(increList.get(0)).getString(adder))) {
+					int check=bigger*objectList.get(curList.get(li)).getString(adder).compareTo(objectList.get(increList.get(0)).getString(adder));
+					if(check<0) {
 						flag=false;
 						break;
+					}else if(check==0) {
+						splitList.add(li);
+						flag=false;
 					}
 				}
 				if(flag) {
 					odIncre.LHS.add(adder);
 					res.add(odIncre);
+					odIncre.copy(od);
+				}else if(!splitList.isEmpty()) {
+					odIncre.LHS.add(adder);
+					ArrayList<OrderDependency> newOD=new ArrayList<OrderDependency>();
+					newOD=increaseLHS(odIncre,splitList);
+					for(OrderDependency tod:newOD) res.add(tod);
 					odIncre.copy(od);
 				}
 			}
@@ -99,15 +111,15 @@ public class Extend {
 		
 		ArrayList<OrderDependency> res=new ArrayList<OrderDependency>();
 		
-		//如果是swap，可以在后面减属性看行不行
+		//swap,try to reduce the attributes from right side
 		if(violationType.equals("swap")) {
 			
 			return reduceRHS(od);
 			
-		}else{//split 左边加属性,右边减属性
+		}else{//split,add at left,reduce at right
 			
-			//尝试左边加属性，首先要get所有属性的名字
-			ArrayList<OrderDependency> addLHS=increaseLHS(od);
+			//try to add attr from left side
+			ArrayList<OrderDependency> addLHS=increaseLHS(od,this.curList);
 			for(OrderDependency tod:addLHS) {
 				res.add(tod);
 			}
