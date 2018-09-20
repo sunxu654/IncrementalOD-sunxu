@@ -20,20 +20,8 @@ package BplusTree;
  *
  */
  
-/**
- * 1.搞清楚树结构
- * 2.链表就可以,get  list(index-1) 如果相等继续往前,如果到头就上面再找
- * 3.把数据填入b+树 (finish)
- * 4.修改node比较规则  不难  comparable(finish)
- * 5.创建接口  
- * 6. 搞清楚插入原理    查找前一个和后一个  
- */
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Random;
-import Data.CSVtoDataObject;
-import Data.VoterObject;
  
 public class BplusTree <K extends Comparable<K>, V extends List>{
  
