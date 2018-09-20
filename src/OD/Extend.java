@@ -27,7 +27,7 @@ public class Extend {
 	}
 	
 	//右边减属性
-	public ArrayList<OrderDependency> reduce_RHS(OrderDependency od){
+	public ArrayList<OrderDependency> reduceRHS(OrderDependency od){
 		ArrayList<OrderDependency> res=new ArrayList<OrderDependency>();
 		
 		//尝试右边减属性，应该剪到cur和incre的相同的前半部分
@@ -50,62 +50,71 @@ public class Extend {
 		return res;
 	}
 	
+	//左边加属性
+	public ArrayList<OrderDependency> increaseLHS(OrderDependency od){
+		ArrayList<OrderDependency> res=new ArrayList<OrderDependency>();
+		
+		ArrayList<String> attrName=VoterObject.getAttributeName();
+		HashMap<String,Integer> m = new HashMap<String,Integer>();
+		OrderDependency odIncre=new OrderDependency();
+		odIncre.copy(od);
+		
+		//使用哈希map来记录已经被使用过的属性
+		for(String it:odIncre.LHS) {
+			m.put(it,new Integer(1));
+		}
+		for(String it:odIncre.RHS) {
+			m.put(it,new Integer(1));
+		}
+		
+		for(String adder:attrName) {
+			
+			System.out.println("尝试添加属性:  "+adder);
+			//如果这个属性没有被使用
+			if(m.get(adder)==null) {
+				m.put(adder,new Integer(1));
+				int bigger=biggerThan(objectList.get(curList.get(0)),objectList.get(increList.get(0)),od);
+				boolean flag=true;
+				for(int li:curList) {
 	
+					if(bigger!=objectList.get(curList.get(li)).getString(adder).compareTo(objectList.get(increList.get(0)).getString(adder))) {
+						flag=false;
+						break;
+					}
+				}
+				if(flag) {
+					odIncre.LHS.add(adder);
+					res.add(odIncre);
+					odIncre.copy(od);
+				}
+			}
+		}
+		
+		return res;
+	}
 	
 	//最终返回的是所有的符合条件的OD的一个list
 	public ArrayList<OrderDependency> extend(OrderDependency od,String violationType) {
 		//TODO::扩展当前od，左边加属性右边减属性；扩展成功的话可以加到原来的属ods里面
 		
 		ArrayList<OrderDependency> res=new ArrayList<OrderDependency>();
-		//Detect d=new Detect(objectList.get(preList.get(0)),objectList.get(nextList.get(0)),objectList.get(curList.get(0)),objectList.get(increList.get(0)));
 		
 		//如果是swap，可以在后面减属性看行不行
 		if(violationType.equals("swap")) {
 			
-			return reduce_RHS(od);
+			return reduceRHS(od);
 			
 		}else{//split 左边加属性,右边减属性
+			
 			//尝试左边加属性，首先要get所有属性的名字
-			ArrayList<String> attrName=VoterObject.getAttributeName();
-			HashMap<String,Integer> m = new HashMap<String,Integer>();
-			OrderDependency odIncre=new OrderDependency();
-			odIncre.copy(od);
-			
-			//使用哈希map来记录已经被使用过的属性
-			for(String it:odIncre.LHS) {
-				m.put(it,new Integer(1));
+			ArrayList<OrderDependency> addLHS=increaseLHS(od);
+			for(OrderDependency tod:addLHS) {
+				res.add(tod);
 			}
-			for(String it:odIncre.RHS) {
-				m.put(it,new Integer(1));
-			}
-			
-			for(String adder:attrName) {
-				
-				System.out.println("尝试添加属性:  "+adder);
-				//如果这个属性没有被使用
-				if(m.get(adder)==null) {
-					m.put(adder,new Integer(1));
-					int bigger=biggerThan(objectList.get(curList.get(0)),objectList.get(increList.get(0)),od);
-					boolean flag=true;
-					for(int li:curList) {
-		
-						if(bigger!=objectList.get(curList.get(li)).getString(adder).compareTo(objectList.get(increList.get(0)).getString(adder))) {
-							flag=false;
-							break;
-						}
-					}
-					if(flag) {
-						odIncre.LHS.add(adder);
-						res.add(odIncre);
-						odIncre.copy(od);
-					}
-				}
-			}
-			
 			
 			//再尝试右边减属性
-			ArrayList<OrderDependency> extraOD=reduce_RHS(od);
-			for(OrderDependency tod:extraOD) {
+			ArrayList<OrderDependency> reRHS=reduceRHS(od);
+			for(OrderDependency tod:reRHS) {
 				res.add(tod);
 			}
 		}
