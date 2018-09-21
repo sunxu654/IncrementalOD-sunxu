@@ -10,7 +10,20 @@ public class OrderDependency {
 		LHS= new ArrayList<String>();
 		RHS = new ArrayList<String>();
 	}
+	
+	public OrderDependency(OrderDependency cp) {
+		LHS= new ArrayList<String>();
+		RHS = new ArrayList<String>();
+		for(String lhs:cp.LHS) {
+			LHS.add(lhs);
+		}
+		for(String rhs:cp.RHS) {
+			RHS.add(rhs);
+		}
+	}
 	public void copy(OrderDependency d) {
+		this.LHS.clear();
+		this.RHS.clear();
 		for(String it:d.LHS) LHS.add(it);
 		for(String it:d.RHS) RHS.add(it);
 	}

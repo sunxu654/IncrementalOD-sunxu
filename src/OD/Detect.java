@@ -1,10 +1,10 @@
 package OD;
 
 import Data.Cmp;
-import Data.VoterObject;
+import Data.DataStruct;
 
 public class Detect {
-	VoterObject preData=new VoterObject(),nextData=new VoterObject(),curData=new VoterObject(),increData=new VoterObject();
+	DataStruct preData=new DataStruct(),nextData=new DataStruct(),curData=new DataStruct(),increData=new DataStruct();
 	public Detect(){
 		//TODO::将与增量相同key的value和前后的value复制过来，增量的value也要拿到
 		/*preData=new DataStruct(1,5);
@@ -13,7 +13,7 @@ public class Detect {
 		increData=new DataStruct(4,6);*/
 		
 	}
-	public Detect(VoterObject pre,VoterObject next,VoterObject cur,VoterObject incre) {
+	public Detect(DataStruct pre,DataStruct next,DataStruct cur,DataStruct incre) {
 		preData=pre;
 		nextData=next;
 		curData=cur;
@@ -23,17 +23,17 @@ public class Detect {
 	public  String detectSingleOD(OrderDependency od) {
 		System.out.print("checking od: ");
 		od.printOD();
-		increData.printData();
-		curData.printData();
+		increData.printSingleData();
+		curData.printSingleData();
 		for(String it:od.RHS) {
-			String pv=preData==null?"":preData.getString(it);
-			String cv=curData==null?"":curData.getString(it);
-			String iv=increData.getString(it);
-			String nv=nextData==null?"":nextData.getString(it);
-			System.out.println(pv+"/"+nv+"/"+cv+"/"+iv);
+			String pv=preData==null?"":preData.getByName(it);
+			String cv=curData==null?"":curData.getByName(it);
+			String iv=increData.getByName(it);
+			String nv=nextData==null?"":nextData.getByName(it);
+			System.out.println("pre: "+pv+"  cur: "+cv+"  next: "+nv+"  incre: "+iv);
 			
-			if((nv.equals("")||Cmp.equals(iv,cv)==false)&&(pv.equals("")||Cmp.compare(pv,iv)>0)&&(nv.equals("")||Cmp.compare(nv,iv)<0)) return "split";
-			else if(iv.equals(cv)==false) return "swap";
+			if((nv.equals("")||Cmp.equals(iv,cv)==false)&&(pv.equals("")||Cmp.compare(pv,iv)<=0)&&(nv.equals("")||Cmp.compare(nv,iv)>=0)) return "split";
+			else if(Cmp.equals(iv,cv)==false) return "swap";
 		}
 		return "valid";
 	}
