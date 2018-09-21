@@ -1,6 +1,8 @@
 package OD;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import Data.Cmp;
 import Data.VoterObject;
 
 public class Extend {
@@ -38,7 +40,7 @@ public class Extend {
 		for(String it:odReduce.RHS) {
 			String cv=objectList.get(curList.get(0)).getString(it);
 			String iv=objectList.get(increList.get(0)).getString(it);
-			if(cv.equals(iv)) prefixNum++;
+			if(Cmp.equals(cv,iv)) prefixNum++;
 		}
 		
 		//如果匹配的数目不为零，那么说明减属性有戏,将prefixNum后面的都删掉
@@ -79,7 +81,7 @@ public class Extend {
 				boolean flag=true;
 				ArrayList<Integer> splitList=new ArrayList<Integer> ();
 				for(int li:curList) {
-					int check=bigger*objectList.get(curList.get(li)).getString(adder).compareTo(objectList.get(increList.get(0)).getString(adder));
+					int check=bigger*Cmp.compare(objectList.get(curList.get(li)).getString(adder),objectList.get(increList.get(0)).getString(adder));
 					if(check<0) {
 						flag=false;
 						break;

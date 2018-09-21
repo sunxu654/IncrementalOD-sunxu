@@ -14,23 +14,23 @@ public class OrderDependency {
 		for(String it:d.LHS) LHS.add(it);
 		for(String it:d.RHS) RHS.add(it);
 	}
-	void addLHS(String s) {
+	public void addLHS(String s) {
 		LHS.add(s);
 	}
-	void addArray2LHS(String[] as) {
+	public void addArray2LHS(String[] as) {
 		for(int i=0;i<as.length;i++) {
 			LHS.add(as[i]);
 		}
 	}
-	void addRHS(String s) {
+	public void addRHS(String s) {
 		RHS.add(s);
 	}
-	void addArray2RHS(String[] as) {
+	public void addArray2RHS(String[] as) {
 		for(int i=0;i<as.length;i++) {
 			RHS.add(as[i]);
 		}
 	}
-	void deleteRHS() {
+	public void deleteRHS() {
 		RHS.remove(RHS.size()-1);
 	}
 	

@@ -1,5 +1,6 @@
 package OD;
 
+import Data.Cmp;
 import Data.VoterObject;
 
 public class Detect {
@@ -31,7 +32,7 @@ public class Detect {
 			String nv=nextData==null?"":nextData.getString(it);
 			System.out.println(pv+"/"+nv+"/"+cv+"/"+iv);
 			
-			if((nv.equals("")||iv.equals(cv)==false)&&(pv.equals("")||pv.compareTo(iv)>0)&&(nv.equals("")||nv.compareTo(iv)<0)) return "split";
+			if((nv.equals("")||Cmp.equals(iv,cv)==false)&&(pv.equals("")||Cmp.compare(pv,iv)>0)&&(nv.equals("")||Cmp.compare(nv,iv)<0)) return "split";
 			else if(iv.equals(cv)==false) return "swap";
 		}
 		return "valid";

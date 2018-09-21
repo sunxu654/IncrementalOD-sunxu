@@ -2,7 +2,7 @@ package Data;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class DataStruct {
+public class DataStruct{
 	private ArrayList<String> attr=new ArrayList<String>();
 	static private HashMap<Integer,String> colNumber_to_attrName=new HashMap<Integer,String>();
 	static private HashMap<String,Integer> attrName_to_colNumber=new HashMap<String,Integer>();
@@ -40,13 +40,13 @@ public class DataStruct {
 	
 	public void printSingleData() {
 		for(int i=0;i<attrNumber;i++) {
-			System.out.print(attr.get(i)+" ");
+			System.out.printf("%-7s",attr.get(i)+" ");
 		}
 		System.out.println();
 	}
 	static public void printAttrName() {
 		for(int i=0;i<attrNumber;i++) {
-			System.out.print(colNumber_to_attrName.get(i)+" ");
+			System.out.printf("%-7s",colNumber_to_attrName.get(i)+" ");
 		}
 		System.out.println();
 	}
