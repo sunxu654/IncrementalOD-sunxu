@@ -47,6 +47,13 @@ public class OrderDependency {
 		RHS.remove(RHS.size()-1);
 	}
 	
+	public ArrayList<String> getLHS(){
+		return this.LHS;
+	}
+	
+	public ArrayList<String> getRHS(){
+		return this.RHS;
+	}
 	public void printOD() {
 		System.out.print(LHS.get(0));
 		for(int i=1;i<LHS.size();i++) {

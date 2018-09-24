@@ -105,13 +105,12 @@ public class Extend {
 
 		for (String adder : attrName) {
 
-			OrderDependency odIncre = new OrderDependency();
-			odIncre.copy(od);
+			OrderDependency odIncre = new OrderDependency(od);
 
 			// 如果这个属性没有被使用
 			if (m.get(adder) == null) {
 				m.put(adder, 1);
-				System.out.println("尝试添加属性:  " + adder);
+				if(Test.debug) System.out.println("尝试添加属性:  " + adder);
 				int bigger = biggerThan(objectList.get(curList.get(0)), objectList.get(increList.get(0)), od);
 				
 				if (Test.debug) {
@@ -119,7 +118,6 @@ public class Extend {
 						System.out.print(i + " ");
 					}
 					System.out.println("/" + increList.get(0));
-					System.out.println(bigger);
 				}
 					
 				
@@ -132,7 +130,7 @@ public class Extend {
 						flag = false;
 						break;
 					} else if (check == 0) {
-						System.out.println("split id is: "+li);
+						if(Test.debug) System.out.println("split id is: "+li);
 						splitList.add(li);
 						flag = false;
 					}

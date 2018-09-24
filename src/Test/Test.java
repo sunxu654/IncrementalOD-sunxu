@@ -2,6 +2,7 @@ package Test;
 import java.util.Map.Entry;
 
 import BplusTree.BplusTree;
+import BplusTree.InstanceKey;
 import Data.*;
 import OD.*;
 
@@ -9,7 +10,7 @@ import java.util.ArrayList;
 
 
 public class Test {
-	static public boolean debug=true;
+	static public boolean debug=false;
 	
 	public static void main(String[] args) {
 		
@@ -38,7 +39,7 @@ public class Test {
 		
 		
 		//先拿第7条数据来当做是增量数据
-		DataStruct increData=objectList.get(6);
+		//DataStruct increData=objectList.get(6);
 		
 		
 		
@@ -51,16 +52,43 @@ public class Test {
 		
 		//对每一条od进行验证
 		for(OrderDependency nowOd:originalODList) {
+			//build B+ tree
+			BplusTree<InstanceKey, ArrayList<Integer>> tree = new BplusTree<InstanceKey, ArrayList<Integer>>(order);		
+			
+			for (int i=0;i<objectList.size();i++) {
+				DataStruct temp=objectList.get(i);
+				tree.insertOrUpdate(new InstanceKey(nowOd.getLHS(),temp),i);
+			}
+			
+			
 			
 			//TODO 假设我通过索引查到了前后数据，拿到了前后数据的tupleID，叫tName
-			int preTupleId=0,nextTupleId=4,curTupleId=1;//cur是有三个,1,2,3
+			//int preTupleId=0,nextTupleId=4,curTupleId=1;//cur是有三个,1,2,3
 			
-			//ArrayList<Integer> preList=
+			ArrayList<Integer> preList=new ArrayList<Integer>(),nextList=new ArrayList<Integer>(),
+					curList=new ArrayList<Integer>(),increList=new ArrayList<Integer>();
+			/*preList.add(0);
+			nextList.add(4);
+			curList.add(1);
+			curList.add(2);
+			curList.add(3);
+			increList.add(6);*/
+			//先拿第7条数据来当做是增量数据
+			increList.add(6);
+			InstanceKey key=new InstanceKey(nowOd.getLHS(),objectList.get(increList.get(0)));
+			curList=tree.get(key);
+			preList=tree.getPre(key, curList.get(0)).getValue();
+			nextList=tree.getNext(key,curList.get(0)).getValue();
+			
+			curList.remove(curList.size()-1);
+			for(Integer i:curList) {
+				System.out.print(i+" ");
+			}
 		
-			DataStruct preData=objectList.get(preTupleId);
-			DataStruct nextData=objectList.get(nextTupleId);
-			DataStruct curData=objectList.get(curTupleId);
-			
+			DataStruct preData=objectList.get(preList.get(0));
+			DataStruct nextData=objectList.get(nextList.get(0));
+			DataStruct curData=objectList.get(curList.get(0));
+			DataStruct increData=objectList.get(increList.get(0));
 			Detect d=new Detect(preData,nextData,curData,increData);
 			String detectRes=d.detectSingleOD(nowOd);
 			
@@ -69,22 +97,22 @@ public class Test {
 			if(detectRes.equals("valid")==false) {
 				od.ods.remove(nowOd);
 				//扩展od
-				ArrayList<Integer> preList=new ArrayList<Integer>(),nextList=new ArrayList<Integer>(),
-						curList=new ArrayList<Integer>(),increList=new ArrayList<Integer>();
-				preList.add(0);
-				nextList.add(4);
-				curList.add(1);
-				curList.add(2);
-				curList.add(3);
-				increList.add(6);
 				
 				Extend et=new Extend(objectList,preList ,nextList,curList,increList);
 				ArrayList<OrderDependency> newOdList=new ArrayList<OrderDependency>();
 				newOdList=et.extend(nowOd,detectRes);
-			
+				
 				if(!newOdList.isEmpty()) {
+					if(debug) {
+						System.out.print("extend od: ");
+						nowOd.printOD();
+					}
+					int count=0;
 					for(OrderDependency no:newOdList) {
-						no.printOD();
+						if(debug) {
+							System.out.print(count+". ");
+							no.printOD();
+						}
 						od.ods.add(no);
 					}
 				}
