@@ -44,7 +44,7 @@ public class Detect {
 		System.out.print("\n\n\nchecking od: ");
 		od.printOD();
 		if (Test.debug) {
-			System.out.print("ATTR NAME: ");
+			System.out.print("ATTR_NAME: ");
 			DataStruct.printAttrName();
 			System.out.print("increData: ");
 			increData.printSingleData();
@@ -68,7 +68,7 @@ public class Detect {
 			if(Cmp.equals(iv, cv) == false) {
 				if (Cmp.compare(pv, iv) >0||Cmp.compare(nv, iv) < 0)
 					return "swap";
-				else //if (Cmp.compare(pv, iv) <=0 &&  Cmp.compare(nv, iv) >= 0)
+				else if (Cmp.equals(cv,"")==false&&Cmp.compare(pv, iv) <=0 &&  Cmp.compare(nv, iv) >= 0)
 					split=true;
 			}
 			
