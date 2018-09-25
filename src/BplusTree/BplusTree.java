@@ -76,6 +76,7 @@ public class BplusTree <K extends Comparable<K>, V extends List>{
 	}
 	
 	public V get(K key) {
+		if(root.get(key)==null) return null;
 		return root.get(key).getValue();
 	}
 	

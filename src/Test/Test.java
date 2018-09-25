@@ -72,24 +72,32 @@ public class Test {
 			//InstanceKey key=new InstanceKey(nowOd.getLHS(),objectList.get(increList.get(0)));
 			InstanceKey key=new InstanceKey(nowOd.getLHS(),iObjectList.get(0));
 			curList=tree.get(key);
+			curList=curList==null?new ArrayList<Integer>():curList;
 			
-			Entry<InstanceKey,ArrayList<Integer>> pre=tree.getPre(key,curList.get(0));
-			preList=pre==null?new ArrayList<Integer>():pre.getValue();
-			
-			Entry<InstanceKey,ArrayList<Integer>> next=tree.getNext(key,curList.get(0));
-			nextList=next==null?new ArrayList<Integer>():next.getValue();
-
 			
 			//将增量的数据放到原始数据集的最后一行
 			objectList.add(iObjectList.get(0));
+			
+			
+			Entry<InstanceKey,ArrayList<Integer>> pre=tree.getPre(key,objectList.size()-1);
+			preList=pre==null?new ArrayList<Integer>():pre.getValue();
+			
+			Entry<InstanceKey,ArrayList<Integer>> next=tree.getNext(key,objectList.size()-1);
+			nextList=next==null?new ArrayList<Integer>():next.getValue();
+
+			
+			
 			increList.add(objectList.size()-1);
 			
 			
 			//curList.remove(curList.size()-1);
-			if(debug&&!curList.isEmpty())
+			if(debug&&(!curList.isEmpty())) {
+				System.out.println("\n\n\nthe current data is:");
 				for(Integer i:curList) {
 					System.out.print(i+" ");
 				}
+			}
+				
 		
 			
 			
@@ -123,6 +131,7 @@ public class Test {
 					}
 				}
 			}
+			objectList.remove(objectList.size()-1);
 		}
 		
 		System.out.println("\n\n\nThe latest od is:");

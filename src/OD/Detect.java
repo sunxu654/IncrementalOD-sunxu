@@ -65,13 +65,20 @@ public class Detect {
 			String nv = nextData == null ? "" : nextData.getByName(it);
 			System.out.println("pre: " + pv + "  cur: " + cv + "  next: " + nv + "  incre: " + iv);
 			
-			if(Cmp.equals(iv, cv) == false) {
+			
+			if(Cmp.equals(cv,iv)==false) {
 				if (Cmp.compare(pv, iv) >0||Cmp.compare(nv, iv) < 0)
 					return "swap";
-				else if (Cmp.equals(cv,"")==false&&Cmp.compare(pv, iv) <=0 &&  Cmp.compare(nv, iv) >= 0)
+				else if (Cmp.equals(cv,"")==false&&Cmp.compare(pv, iv) <=0 &&  Cmp.compare(nv, iv) >= 0) {
 					split=true;
+					
+					//这里是考虑到右边多元素的情况
+					//比如右边pre：472 cur：521  next:562  incre:561 头一遭已经确定pre比后面的都小了，后面的循环就不能用pre的后序比了。
+					if(Cmp.compare(pv, iv)<0) preData=null;
+					else if(Cmp.compare(nv, iv)>0) nextData=null;
+				}else if(Cmp.equals(cv,"")&&(Cmp.equals(pv,"")||Cmp.compare(pv, iv) <0) &&  (Cmp.equals(nv,"")||Cmp.compare(nv, iv) > 0))
+					return "valid";
 			}
-			
 		}
 		if(split) return "split";
 		return "valid";

@@ -160,7 +160,7 @@ public class Extend {
 					odIncre.LHS.add(adder);
 					res.add(new OrderDependency(odIncre));
 					odIncre.copy(od);
-				} else if (!splitList.isEmpty()) {
+				} else if (!splitList.isEmpty()&&splitList.size()!=curList.size()) {
 					if (Test.debug) System.out.println("递归查找...");
 					odIncre.LHS.add(adder);
 					ArrayList<OrderDependency> newOD = new ArrayList<OrderDependency>();

@@ -1,7 +1,10 @@
 id,year,month,day,age,name,birth,gender,race
 0,5,5,4,3,alice,1,f,3
-1,6,5,4,5,hello,2,m,7
-1,6,5,4,5,we,3,f,5
-1,6,5,4,5,ben,4,f,8
-0,7,5,6,1,luoman,4,m,9
-0,7,5,6,1,robin,4,f,4
+1,6,5,5,5,hello,2,m,4
+1,6,5,5,5,we,3,f,5
+1,6,5,5,5,ben,4,f,6
+0,7,5,6,1,luoman,4,m,6
+0,7,5,6,1,robin,4,f,6
+1,9,6,7,2,rose,5,f,7
+0,10,7,8,5,brown,5,m,7
+1,12,9,9,6,computer,5,f,7
