@@ -12,10 +12,6 @@ public class Extend {
 			curList = new ArrayList<Integer>(), increList = new ArrayList<Integer>();
 	ArrayList<DataStruct> objectList = new ArrayList<DataStruct>();
 
-	public Extend() {
-
-	}
-
 	public Extend(ArrayList<DataStruct> objList, ArrayList<Integer> pre, ArrayList<Integer> next,
 			ArrayList<Integer> cur, ArrayList<Integer> incre) {
 		preList = pre;
@@ -34,7 +30,7 @@ public class Extend {
 		// swap,try to reduce the attributes from right side
 		if (violationType.equals("swap")) {
 
-			return reduceRHS(od);
+			return reduceRHSforSwap(od);
 
 		} else {// split,add at left,reduce at right
 
@@ -45,7 +41,7 @@ public class Extend {
 			}
 
 			// try to reduce attr from right side
-			ArrayList<OrderDependency> reRHS = reduceRHS(od);
+			ArrayList<OrderDependency> reRHS = reduceRHSforSplit(od);
 			for (OrderDependency tod : reRHS) {
 				res.add(tod);
 			}
@@ -53,8 +49,21 @@ public class Extend {
 		return res;
 	}
 
+	
+	public ArrayList<OrderDependency> reduceRHSforSwap(OrderDependency od){
+		ArrayList<OrderDependency> res=new ArrayList<OrderDependency>();
+		Detect d=new Detect(objectList,preList,nextList,curList,increList);
+		String violationType="swap";
+		while(violationType.equals("valid")==false&&od.RHS.size()>1) {
+			od.RHS.remove(od.RHS.size()-1);
+			violationType=d.detectSingleOD(od);
+		}
+		
+		if(violationType.equals("valid")) res.add(od);
+		return res;
+	}
 	// reduce right side attr
-	public ArrayList<OrderDependency> reduceRHS(OrderDependency od) {
+	public ArrayList<OrderDependency> reduceRHSforSplit(OrderDependency od) {
 		ArrayList<OrderDependency> res = new ArrayList<OrderDependency>();
 
 		// 尝试右边减属性，应该剪到cur和incre的相同的前半部分

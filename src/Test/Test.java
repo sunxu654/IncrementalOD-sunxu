@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 
 public class Test {
-	static public boolean debug=false;
+	static public boolean debug=true;
 	
 	public static void main(String[] args) {
 		
@@ -52,6 +52,7 @@ public class Test {
 		
 		//对每一条od进行验证
 		for(OrderDependency nowOd:originalODList) {
+			
 			//build B+ tree
 			BplusTree<InstanceKey, ArrayList<Integer>> tree = new BplusTree<InstanceKey, ArrayList<Integer>>(order);		
 			
@@ -67,29 +68,32 @@ public class Test {
 			
 			ArrayList<Integer> preList=new ArrayList<Integer>(),nextList=new ArrayList<Integer>(),
 					curList=new ArrayList<Integer>(),increList=new ArrayList<Integer>();
-			/*preList.add(0);
-			nextList.add(4);
-			curList.add(1);
-			curList.add(2);
-			curList.add(3);
-			increList.add(6);*/
-			//先拿第7条数据来当做是增量数据
-			increList.add(6);
+			
+			//先拿最后一条数据来当做是增量数据
+			increList.add(objectList.size()-1);
+			
 			InstanceKey key=new InstanceKey(nowOd.getLHS(),objectList.get(increList.get(0)));
 			curList=tree.get(key);
-			preList=tree.getPre(key, curList.get(0)).getValue();
-			nextList=tree.getNext(key,curList.get(0)).getValue();
+			
+			Entry<InstanceKey,ArrayList<Integer>> pre=tree.getPre(key,curList.get(0));
+			preList=pre==null?null:pre.getValue();
+			
+			Entry<InstanceKey,ArrayList<Integer>> next=tree.getNext(key,curList.get(0));
+			nextList=next==null?null:next.getValue();
 			
 			curList.remove(curList.size()-1);
-			for(Integer i:curList) {
-				System.out.print(i+" ");
-			}
+			if(debug&&!curList.isEmpty())
+				for(Integer i:curList) {
+					System.out.print(i+" ");
+				}
 		
-			DataStruct preData=objectList.get(preList.get(0));
-			DataStruct nextData=objectList.get(nextList.get(0));
-			DataStruct curData=objectList.get(curList.get(0));
-			DataStruct increData=objectList.get(increList.get(0));
-			Detect d=new Detect(preData,nextData,curData,increData);
+//			DataStruct preData=preList==null?null:objectList.get(preList.get(0));
+//			DataStruct nextData=nextList==null?null:objectList.get(nextList.get(0));
+//			DataStruct curData=curList.isEmpty()?null:objectList.get(curList.get(0));
+//			DataStruct increData=objectList.get(increList.get(0));
+//			
+//			Detect d=new Detect(preData,nextData,curData,increData);
+			Detect d=new Detect(objectList,preList,nextList,curList,increList);
 			String detectRes=d.detectSingleOD(nowOd);
 			
 			System.out.println(detectRes);
@@ -111,6 +115,7 @@ public class Test {
 					for(OrderDependency no:newOdList) {
 						if(debug) {
 							System.out.print(count+". ");
+							count++;
 							no.printOD();
 						}
 						od.ods.add(no);

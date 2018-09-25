@@ -1,1 +1,2 @@
 month->year
+day,age->birth,race
