@@ -36,8 +36,8 @@ public class Detect {
 
 	// 这里需要一个循环，来应对AB->CDEF这种右边有多条od的情况
 	public String detectSingleOD(OrderDependency od) {
-		DataStruct preData=preList==null?null:objectList.get(preList.get(0));
-		DataStruct nextData=nextList==null?null:objectList.get(nextList.get(0));
+		DataStruct preData=preList.isEmpty()?null:objectList.get(preList.get(0));
+		DataStruct nextData=nextList.isEmpty()?null:objectList.get(nextList.get(0));
 		DataStruct curData=curList.isEmpty()?null:objectList.get(curList.get(0));
 		DataStruct increData=objectList.get(increList.get(0));
 		

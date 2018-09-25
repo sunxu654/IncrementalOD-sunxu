@@ -51,6 +51,7 @@ public class Extend {
 
 	
 	public ArrayList<OrderDependency> reduceRHSforSwap(OrderDependency od){
+		if(Test.debug)  System.out.println("尝试减少属性..");
 		ArrayList<OrderDependency> res=new ArrayList<OrderDependency>();
 		Detect d=new Detect(objectList,preList,nextList,curList,increList);
 		String violationType="swap";
@@ -59,7 +60,14 @@ public class Extend {
 			violationType=d.detectSingleOD(od);
 		}
 		
-		if(violationType.equals("valid")) res.add(od);
+		if(violationType.equals("valid")) {
+			if(Test.debug) {
+				System.out.println("减少属性成功");
+				od.printOD();
+			}
+			
+			res.add(od);
+		}
 		return res;
 	}
 	// reduce right side attr

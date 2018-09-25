@@ -76,10 +76,10 @@ public class Test {
 			curList=tree.get(key);
 			
 			Entry<InstanceKey,ArrayList<Integer>> pre=tree.getPre(key,curList.get(0));
-			preList=pre==null?null:pre.getValue();
+			preList=pre==null?new ArrayList<Integer>():pre.getValue();
 			
 			Entry<InstanceKey,ArrayList<Integer>> next=tree.getNext(key,curList.get(0));
-			nextList=next==null?null:next.getValue();
+			nextList=next==null?new ArrayList<Integer>():next.getValue();
 			
 			curList.remove(curList.size()-1);
 			if(debug&&!curList.isEmpty())
@@ -87,12 +87,6 @@ public class Test {
 					System.out.print(i+" ");
 				}
 		
-//			DataStruct preData=preList==null?null:objectList.get(preList.get(0));
-//			DataStruct nextData=nextList==null?null:objectList.get(nextList.get(0));
-//			DataStruct curData=curList.isEmpty()?null:objectList.get(curList.get(0));
-//			DataStruct increData=objectList.get(increList.get(0));
-//			
-//			Detect d=new Detect(preData,nextData,curData,increData);
 			Detect d=new Detect(objectList,preList,nextList,curList,increList);
 			String detectRes=d.detectSingleOD(nowOd);
 			
@@ -108,7 +102,7 @@ public class Test {
 				
 				if(!newOdList.isEmpty()) {
 					if(debug) {
-						System.out.print("extend od: ");
+						System.out.print("modify od: ");
 						nowOd.printOD();
 					}
 					int count=0;
