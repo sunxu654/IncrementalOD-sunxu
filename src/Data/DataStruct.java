@@ -29,7 +29,9 @@ public class DataStruct{
 	public void add(String adder) {
 		attr.add(adder);
 	}
-	
+	public void add(DataStruct nds) {
+		
+	}
 	public String getIndex(int i) {
 		return attr.get(i);
 	}

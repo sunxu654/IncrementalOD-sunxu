@@ -15,13 +15,13 @@ public class Test {
 	public static void main(String[] args) {
 		
 		final int order = 10;
-		CSVtoDataObject2 cdo = new CSVtoDataObject2();
-		//CSVtoDataObject increData=new CSVtoDataObject();
+		CSVtoDataObject cdo = new CSVtoDataObject();
+		CSVtoDataObject ind=new CSVtoDataObject();
 		ODs od=new ODs();
 		try{
 			od.storeOD("od.txt");
 			cdo.readCSVData("test.csv");
-			//increData.readCSVData();
+			ind.readCSVData("incrementalData.csv");
 		}catch(Exception e) {
 			System.out.println("read fail!");
 		}
@@ -31,17 +31,21 @@ public class Test {
 		od.print();
 		
 		ArrayList<DataStruct> objectList = cdo.datatoObject();
+		ArrayList<DataStruct> iObjectList=ind.datatoObject();
 		
-		DataStruct.printAttrName();
-		for(DataStruct obj:objectList) {
-			obj.printSingleData();
+		
+		if(debug) {
+			DataStruct.printAttrName();
+			for(DataStruct obj:objectList) {
+				obj.printSingleData();
+			}
+			System.out.println("增量数据");
+			for(DataStruct obj:iObjectList) {
+				obj.printSingleData();
+			}
 		}
 		
-		
-		//先拿第7条数据来当做是增量数据
-		//DataStruct increData=objectList.get(6);
-		
-		
+		//TODO::对多条增量数据进行测试
 		
 		//存储所有原有的od
 		ArrayList<OrderDependency> originalODList=new ArrayList<OrderDependency>();
@@ -61,18 +65,12 @@ public class Test {
 				tree.insertOrUpdate(new InstanceKey(nowOd.getLHS(),temp),i);
 			}
 			
-			
-			
-			//TODO 假设我通过索引查到了前后数据，拿到了前后数据的tupleID，叫tName
-			//int preTupleId=0,nextTupleId=4,curTupleId=1;//cur是有三个,1,2,3
-			
 			ArrayList<Integer> preList=new ArrayList<Integer>(),nextList=new ArrayList<Integer>(),
 					curList=new ArrayList<Integer>(),increList=new ArrayList<Integer>();
 			
-			//先拿最后一条数据来当做是增量数据
-			increList.add(objectList.size()-1);
 			
-			InstanceKey key=new InstanceKey(nowOd.getLHS(),objectList.get(increList.get(0)));
+			//InstanceKey key=new InstanceKey(nowOd.getLHS(),objectList.get(increList.get(0)));
+			InstanceKey key=new InstanceKey(nowOd.getLHS(),iObjectList.get(0));
 			curList=tree.get(key);
 			
 			Entry<InstanceKey,ArrayList<Integer>> pre=tree.getPre(key,curList.get(0));
@@ -80,13 +78,22 @@ public class Test {
 			
 			Entry<InstanceKey,ArrayList<Integer>> next=tree.getNext(key,curList.get(0));
 			nextList=next==null?new ArrayList<Integer>():next.getValue();
+
 			
-			curList.remove(curList.size()-1);
+			//将增量的数据放到原始数据集的最后一行
+			objectList.add(iObjectList.get(0));
+			increList.add(objectList.size()-1);
+			
+			
+			//curList.remove(curList.size()-1);
 			if(debug&&!curList.isEmpty())
 				for(Integer i:curList) {
 					System.out.print(i+" ");
 				}
 		
+			
+			
+			
 			Detect d=new Detect(objectList,preList,nextList,curList,increList);
 			String detectRes=d.detectSingleOD(nowOd);
 			
