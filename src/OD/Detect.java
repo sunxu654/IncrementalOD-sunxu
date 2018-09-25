@@ -55,7 +55,8 @@ public class Detect {
 			}
 				
 		}
-
+		boolean split=false;
+		//TODO::swap 和split的检验还是一个问题
 		for (String it : od.RHS) {
 			System.out.println("检查右边属性: "+it);
 			String pv = preData == null ? "" : preData.getByName(it);
@@ -63,17 +64,16 @@ public class Detect {
 			String iv = increData.getByName(it);
 			String nv = nextData == null ? "" : nextData.getByName(it);
 			System.out.println("pre: " + pv + "  cur: " + cv + "  next: " + nv + "  incre: " + iv);
-
-//			if ((nv.equals("") || Cmp.equals(iv, cv) == false) && (pv.equals("") || Cmp.compare(pv, iv) < 0)
-//					&& (nv.equals("") || Cmp.compare(nv, iv) > 0))
-//				return "split";
-//			else if ((pv.equals("") || Cmp.compare(pv, iv) < 0)||(nv.equals("") || Cmp.compare(nv, iv) > 0))
-//				return "swap";
-			if (Cmp.equals(iv, cv) == false && Cmp.compare(pv, iv) <=0 &&  Cmp.compare(nv, iv) >= 0)
-				return "split";
-			else if (Cmp.compare(pv, iv) >0||Cmp.compare(nv, iv) < 0)
-				return "swap";
+			
+			if(Cmp.equals(iv, cv) == false) {
+				if (Cmp.compare(pv, iv) >0||Cmp.compare(nv, iv) < 0)
+					return "swap";
+				else //if (Cmp.compare(pv, iv) <=0 &&  Cmp.compare(nv, iv) >= 0)
+					split=true;
+			}
+			
 		}
+		if(split) return "split";
 		return "valid";
 	}
 }

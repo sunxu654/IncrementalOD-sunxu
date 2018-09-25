@@ -55,9 +55,10 @@ public class Extend {
 		ArrayList<OrderDependency> res=new ArrayList<OrderDependency>();
 		Detect d=new Detect(objectList,preList,nextList,curList,increList);
 		String violationType="swap";
-		while(violationType.equals("valid")==false&&od.RHS.size()>1) {
+		while(violationType.equals("swap")&&od.RHS.size()>1) {
 			od.RHS.remove(od.RHS.size()-1);
 			violationType=d.detectSingleOD(od);
+			if(Test.debug) System.out.println(violationType);
 		}
 		
 		if(violationType.equals("valid")) {
@@ -67,6 +68,8 @@ public class Extend {
 			}
 			
 			res.add(od);
+		}else if(violationType.equals("split")) {
+			return extend(od,"split");
 		}
 		return res;
 	}
