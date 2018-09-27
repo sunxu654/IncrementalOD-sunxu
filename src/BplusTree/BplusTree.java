@@ -76,8 +76,9 @@ public class BplusTree <K extends Comparable<K>, V extends List>{
 	}
 	
 	public V get(K key) {
-		if(root.get(key)==null) return null;
-		return root.get(key).getValue();
+		Entry<K,V> g=root.get(key);
+		if(g==null) return null;
+		return g.getValue();
 	}
 	
 	public V remove(K key,int tid) {
