@@ -6,44 +6,33 @@ import Data.Cmp;
 import Data.DataStruct;
 import Test.*;
 
-public class Detect {
-//	DataStruct preData = new DataStruct(), nextData = new DataStruct(), curData = new DataStruct(),
-//			increData = new DataStruct();
-	
+public class Detect {	
 	ArrayList<Integer> preList=new ArrayList<Integer>(),nextList=new ArrayList<Integer>(),
 			curList=new ArrayList<Integer>(),increList=new ArrayList<Integer>();
-	ArrayList<DataStruct> objectList = new ArrayList<DataStruct>();
+	//ArrayList<DataStruct> objectList = new ArrayList<DataStruct>();
 	public Detect() {
 
 	}
-
-//	public Detect(DataStruct pre, DataStruct next, DataStruct cur, DataStruct incre) {
-//		preData = pre;
-//		nextData = next;
-//		curData = cur;
-//		increData = incre;
-//		
-//	}
 	
-	public Detect(ArrayList<DataStruct> objList, ArrayList<Integer> pre, ArrayList<Integer> next,
+	public Detect(ArrayList<Integer> pre, ArrayList<Integer> next,
 			ArrayList<Integer> cur, ArrayList<Integer> incre) {
 		preList = pre;
 		nextList = next;
 		curList = cur;
 		increList = incre;
-		objectList = objList;
+		//objectList = objList;
 	}
 
 	// 这里需要一个循环，来应对AB->CDEF这种右边有多条od的情况
 	public String detectSingleOD(OrderDependency od) {
-		DataStruct preData=preList.isEmpty()?null:objectList.get(preList.get(0));
-		DataStruct nextData=nextList.isEmpty()?null:objectList.get(nextList.get(0));
-		DataStruct curData=curList.isEmpty()?null:objectList.get(curList.get(0));
-		DataStruct increData=objectList.get(increList.get(0));
+		DataStruct preData=preList.isEmpty()?null:ReadandCheck.objectList.get(preList.get(0));
+		DataStruct nextData=nextList.isEmpty()?null:ReadandCheck.objectList.get(nextList.get(0));
+		DataStruct curData=curList.isEmpty()?null:ReadandCheck.objectList.get(curList.get(0));
+		DataStruct increData=ReadandCheck.objectList.get(increList.get(0));
 		
 		System.out.print("\n\n\nchecking od: ");
 		od.printOD();
-		if (Test.debug) {
+		if (ReadandCheck.debug) {
 			System.out.print("ATTR_NAME: ");
 			DataStruct.printAttrName();
 			System.out.print("increData: ");
@@ -57,13 +46,17 @@ public class Detect {
 		}
 		boolean split=false;
 		//TODO::swap 和split的检验还是一个问题
-		for (String it : od.RHS) {
-			System.out.println("检查右边属性: "+it);
+		for (String it : od.getRHS()) {
+			
 			String pv = preData == null ? "" : preData.getByName(it);
 			String cv = curData == null ? "" : curData.getByName(it);
 			String iv = increData.getByName(it);
 			String nv = nextData == null ? "" : nextData.getByName(it);
-			System.out.println("pre: " + pv + "  cur: " + cv + "  next: " + nv + "  incre: " + iv);
+
+			if(ReadandCheck.debug) {
+				System.out.println("检查右边属性: "+it);
+				System.out.println("pre: " + pv + "  cur: " + cv + "  next: " + nv + "  incre: " + iv);
+			}
 			
 			
 			if(Cmp.equals(cv,iv)==false) {
