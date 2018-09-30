@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 
 public class ReadandCheck {
-	public static boolean debug=false;
+	public static boolean debug=true;
 	final private static int order = 10;
 	public static CSVtoDataObject cdo = new CSVtoDataObject();
 	private static CSVtoDataObject ind=new CSVtoDataObject();
@@ -31,10 +31,11 @@ public static void main(String[] args) {
 			System.out.println("The original od is:");
 			od.print();
 			
-			DataStruct.printAttrName();
-			for(DataStruct obj:objectList) {
-				obj.printSingleData();
-			}
+//			DataStruct.printAttrName();
+//			for(DataStruct obj:objectList) {
+//				obj.printSingleData();
+//			}
+			System.out.println("共有"+objectList.size()+"条数据");
 			System.out.println("增量数据");
 			for(DataStruct obj:iObjectList) {
 				obj.printSingleData();
@@ -47,8 +48,12 @@ public static void main(String[] args) {
 		checkAllOD(enrichODList);
 		
 		
+		System.out.println("\n\n\nThe enrichment ods is:");
+		for(OrderDependency o:enrichODList) {
+			o.printOD();
+		}
 		
-		System.out.println("\n\n\nThe latest od is:");
+		System.out.println("\n\n\nThe latest ods is:");
 		od.print();
 		
 	}

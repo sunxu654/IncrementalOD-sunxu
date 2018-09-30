@@ -1,2 +1,2 @@
-id,year,month,day,age,name,birth,gender,race
-0,6,5,5,5,linda,4,m,7
+year,month,day,name,age,birth,race
+8,6,4,alice,10,5,14
