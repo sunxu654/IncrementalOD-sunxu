@@ -15,6 +15,8 @@ package BplusTree;
  * 9.所有关键字都在叶子结点出现
  */
 
+import java.util.ArrayList;
+
 /**
  * @author LeeJay 2014-04-03
  *
@@ -22,9 +24,11 @@ package BplusTree;
  
 import java.util.List;
 import java.util.Map.Entry;
+
+import Data.DataStruct;
  
-public class BplusTree <K extends Comparable<K>, V extends List>{
- 
+public class BplusTree <K extends Comparable<K>, V extends ArrayList>{
+	 public ArrayList<String > attrName = new ArrayList<>();
 	/** 根节点 */
 	protected BplusNode<K, V> root;
  
@@ -37,11 +41,36 @@ public class BplusTree <K extends Comparable<K>, V extends List>{
 	/** 树高*/
 	protected int height = 0;
 	
+	public Entry<K,V> getMoreDetailedAtrributeTupleID(K key,ArrayList<String> attrNameOfKey,ArrayList<DataStruct> objectList) {
+		return root.getMoreDetailedAtrributeTupleID(key, attrNameOfKey, objectList);
+	}
+	public Entry<K,V> getMoreDetailedAtrributeTupleID_Pre(K key,int tid ,ArrayList<String> attrNameOfKey, ArrayList<DataStruct> objectList,BplusTree<K,V> tree) {
+		return root.getMoreDetailedAtrributeTupleID_Pre(key, tid, attrNameOfKey, objectList, tree);
+	}
+	
+	public Entry<K,V> getMoreDetailedAtrributeTupleID_Next
+    (K key,int tid ,ArrayList<String> attrNameOfKey, ArrayList<DataStruct> objectList,BplusTree<K,V> tree) {
+		return root.getMoreDetailedAtrributeTupleID_Next(key, tid, attrNameOfKey, objectList, tree);
+	}
+	
+	
+	public Entry<K,V> getPrefixAtrributeTupleID_Pre(K key,int tid, BplusTree<K,V> tree) { 
+		return root.getPrefixAtrributeTupleID_Pre(key, tid, tree);
+	}
+	public Entry<K,V> getPrefixAtrributeTupleID_Next(K key,int tid, BplusTree<K,V> tree) {
+		return root.getPrefixAtrributeTupleID_Next(key,tid,tree) ;
+	}
+	public Entry<K,V> getPrefixAtrributeTupleID(K key){
+		return root.getPrefixAtrributeTupleID(key);
+	}
 	public  Entry<K,V>  getPre(K key,int tid){
 		return root.getPre(key,tid,this);
 	}
 	public  Entry<K,V> getNext(K key ,int tid){
 		return root.getNext(key,tid,this);
+	}
+	public  Entry<K,V> getKey(K key){
+		return root.get(key);
 	}
 	public BplusNode<K, V> getHead() {
 		return head;
@@ -76,9 +105,8 @@ public class BplusTree <K extends Comparable<K>, V extends List>{
 	}
 	
 	public V get(K key) {
-		Entry<K,V> g=root.get(key);
-		if(g==null) return null;
-		return g.getValue();
+		if(root.get(key)==null) return null;
+		return root.get(key).getValue();
 	}
 	
 	public V remove(K key,int tid) {

@@ -1,12 +1,18 @@
 package BplusTree;
 
 import java.util.AbstractMap.SimpleEntry; 
-import java.util.ArrayList; 
-import java.util.List; 
-import java.util.Map.Entry; 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import Data.DataStruct; 
+import Data.Cmp;
  
-public class BplusNode <K extends Comparable<K>, V extends List> { 
-     
+public class BplusNode <K extends Comparable<K>, V extends ArrayList> { 
+   
     /** 是否为叶子节点 */ 
     protected boolean isLeaf; 
      
@@ -23,10 +29,10 @@ public class BplusNode <K extends Comparable<K>, V extends List> {
     protected BplusNode<K, V> next;     
      
     /** 节点的关键字 */ 
-    protected List<Entry<K, V>> entries; 
+    public List<Entry<K, V>> entries; 
      
     /** 子节点 */ 
-    protected List<BplusNode<K, V>> children; 
+    public List<BplusNode<K, V>> children; 
      
     public BplusNode(boolean isLeaf) { 
         this.isLeaf = isLeaf; 
@@ -40,6 +46,604 @@ public class BplusNode <K extends Comparable<K>, V extends List> {
         this(isLeaf); 
         this.isRoot = isRoot; 
     } 
+    public Entry<K,V> getMoreDetailedAtrributeTupleID_Next
+    (K key,int tid ,ArrayList<String> attrNameOfKey, ArrayList<DataStruct> objectList,BplusTree<K,V> tree) {
+        //如果是叶子节点 
+        if (isLeaf) { 
+	        	int low = 0, high = entries.size() - 1, mid;
+	            int comp ;
+	    		while (low <= high) {
+	    			mid = (low + high) / 2;
+	    			comp = entries.get(mid).getKey().compareTo(key);
+	    			if (comp == 0) {
+	    				//listMore内存储   索引树的精细度下的与key相同的tupleId
+	    				ArrayList<Integer> listMore = new ArrayList<Integer>();
+	    				//listResult内存储   key的精细度下的与key相同的tupleId
+	    				ArrayList<Integer> listResult = new ArrayList<Integer>();
+	    				//把左右方向(包括不同BplusNode上的 与key相同的tupleId全收集起来
+	    				addList2Left(mid-1, key, listMore, this);
+	    				addList2Right(mid+1, key, listMore, this);
+	    				listMore.addAll((ArrayList<Integer>) entries.get(mid).getValue());
+	    				
+	    				//获得树中的key的size,用于给keyCutted切割数据
+	    				int size = 0;
+	    				if(tree.getPre(key, tid)!=null) {
+	    					size = ((InstanceKey)tree.getPre(key, tid).getKey()).multiAtr.size();
+	    				}
+	    				else if(tree.getNext(key, tid)!=null){
+	    					size = ((InstanceKey)tree.getNext(key, tid).getKey()).multiAtr.size();
+	    				}
+	    				if(size==0)
+	    					return null;
+	    				InstanceKey keyCutted = new InstanceKey();
+	    				InstanceKey keyOriginal = (InstanceKey)key;
+	    				//切割key里面的数据
+	    				for(int i =0;i<size;i++) {
+	    					keyCutted.multiAtr.add(keyOriginal.multiAtr.get(i));
+	    				}
+	    				//切割完成后找到keyCutted的Pre的tupleId
+	    				Entry entry = getPre((K)keyCutted,tid, tree);
+	    				listMore.addAll((Collection<? extends Integer>) entry.getValue());
+	    				entry = getNext((K)keyCutted,tid, tree);
+	    				listMore.addAll((Collection<? extends Integer>) entry.getValue());
+	    				
+	    				
+	    				//对listMode里面的数据进行筛选,选出符合精细key的Pre的tupleId
+	    				//首先创建容纳DataStruct的链表并进行排序
+	    				ArrayList<DataStruct> dataList = new ArrayList<DataStruct>();
+	    				for(int temp : listMore) {
+	    					dataList.add(objectList.get(temp));
+	    				}
+    					//排序
+    					for(int i2=0;i2<dataList.size()-1;i2++){//外层循环控制排序趟数
+    						for(int j=0;j<dataList.size()-1-i2;j++){
+    						//内层循环控制每一趟排序多少次
+    							if(DataStruct.comparator(dataList.get(j), dataList.get(j+1), attrNameOfKey)>0){
+    								DataStruct temp1=dataList.get(j);
+    								dataList.set(j, dataList.get(j+1));
+    								dataList.set(j+1,temp1);
+    							}
+    						}
+    					}
+    					for(int i =dataList.size()-1;i>0;i--) {
+    						int result = compareDataStruct2Key(key,attrNameOfKey,dataList.get(i));
+    						if(result==0) {
+    							//从右往左第一个data的Pre
+    							DataStruct dataNextFirst = dataList.get(i+1);
+    							//对前缀key进行赋值,方便把与所有的前缀key相同的dataList中的数据筛选出来
+    							InstanceKey keyNextFirst = new InstanceKey();
+    							for(int i1 = 0;i1<keyOriginal.multiAtr.size();i1++) {
+    								keyNextFirst.multiAtr.add(dataNextFirst.getByName(attrNameOfKey.get(i1)));
+    								
+    							}
+    							
+//    							listResult.add(Integer.parseInt((dataNextFirst.getByName("id"))));
+    							//从右往左开始,把与keyPreList相同的dataStruct的tupleId收集到listResult中
+    							for(int loc = i+1;loc<dataList.size();loc++) {
+    								if(compareDataStruct2Key((K)keyNextFirst,attrNameOfKey,dataList.get(loc))==0) {
+    									listResult.add(Integer.parseInt((dataList.get(loc).getByName("id"))));
+    								}
+    								else {
+//    									return (Entry<K, V>) new HashMap().put(key, listResult);
+    				    				return (Entry<K, V>) new SimpleEntry<InstanceKey, ArrayList<Integer>>((InstanceKey) key, listResult);
+
+    								}
+    							}
+    							return new SimpleEntry<K, V>( key, (V)listResult);
+    							
+    						}
+    					}
+//	    			return (Entry<K, V>) new HashMap().put(key, listResult);
+	    				return (Entry<K, V>) new SimpleEntry<InstanceKey, ArrayList<Integer>>((InstanceKey) key, listResult);
+
+	    			} else if (comp < 0) {
+	    				low = mid + 1;
+	    			} else {
+	    				high = mid - 1;
+	    			}
+	    		}
+            //未找到所要查询的对象 
+            return null; 
+        }
+        //如果不是叶子节点 
+        //如果key小于节点最左边的key，沿第一个子节点继续搜索 
+        if (key.compareTo(entries.get(0).getKey()) < 0) { 
+            return children.get(0).getMoreDetailedAtrributeTupleID_Next( key, tid ,attrNameOfKey, objectList,tree); 
+        //如果key大于等于节点最右边的key，沿最后一个子节点继续搜索 
+        }else if (key.compareTo(entries.get(entries.size()-1).getKey()) >= 0) { 
+            return children.get(children.size()-1).getMoreDetailedAtrributeTupleID_Next( key, tid ,attrNameOfKey, objectList,tree); 
+        //否则沿比key大的前一个子节点继续搜索 
+        }else { 
+            int low = 0, high = entries.size() - 1, mid= 0;
+            int comp ;
+        		while (low <= high) {
+        			mid = (low + high) / 2;
+        			comp = entries.get(mid).getKey().compareTo(key);
+        			if (comp == 0) {
+        				return children.get(mid+1).getMoreDetailedAtrributeTupleID_Next( key, tid ,attrNameOfKey, objectList,tree); 
+        			} else if (comp < 0) {
+        				low = mid + 1;
+        			} else {
+        				high = mid - 1;
+        			}
+        		}
+        	return children.get(low).getMoreDetailedAtrributeTupleID_Next( key, tid ,attrNameOfKey, objectList,tree);
+        } 
+    }
+    //查找比key更精细的key+CDEF...属性的前缀的tupleID
+    public Entry<K,V> getMoreDetailedAtrributeTupleID_Pre
+    (K key,int tid ,ArrayList<String> attrNameOfKey, ArrayList<DataStruct> objectList,BplusTree<K,V> tree) {
+        //如果是叶子节点 
+        if (isLeaf) { 
+	        	int low = 0, high = entries.size() - 1, mid;
+	            int comp ;
+	    		while (low <= high) {
+	    			mid = (low + high) / 2;
+	    			comp = entries.get(mid).getKey().compareTo(key);
+	    			if (comp == 0) {
+	    				//listMore内存储   索引树的精细度下的与key相同的tupleId
+	    				ArrayList<Integer> listMore = new ArrayList<Integer>();
+	    				//listResult内存储   key的精细度下的与key相同的tupleId
+	    				ArrayList<Integer> listResult = new ArrayList<Integer>();
+	    				//把左右方向(包括不同BplusNode上的 与key相同的tupleId全收集起来
+	    				addList2Left(mid-1, key, listMore, this);
+	    				addList2Right(mid+1, key, listMore, this);
+	    				listMore.addAll((ArrayList<Integer>) entries.get(mid).getValue());
+	    				
+	    				//获得树中的key的size,用于给keyCutted切割数据
+	    				int size = 0;
+	    				if(tree.getPre(key, tid)!=null) {
+	    					size = ((InstanceKey)tree.getPre(key, tid).getKey()).multiAtr.size();
+	    				}
+	    				else if(tree.getNext(key, tid)!=null){
+	    					size = ((InstanceKey)tree.getNext(key, tid).getKey()).multiAtr.size();
+	    				}
+	    				if(size==0)
+	    					return null;
+	    				InstanceKey keyCutted = new InstanceKey();
+	    				InstanceKey keyOriginal = (InstanceKey)key;
+	    				//切割key里面的数据
+	    				for(int i =0;i<size;i++) {
+	    					keyCutted.multiAtr.add(keyOriginal.multiAtr.get(i));
+	    				}
+	    				//切割完成后找到keyCutted的Pre的tupleId
+	    				Entry entry = getPre((K)keyCutted,tid, tree);
+	    				listMore.addAll((Collection<? extends Integer>) entry.getValue());
+	    				entry = getNext((K)keyCutted,tid, tree);
+	    				listMore.addAll((Collection<? extends Integer>) entry.getValue());
+	    				
+	    				
+	    				//对listMode里面的数据进行筛选,选出符合精细key的Pre的tupleId
+	    				//首先创建容纳DataStruct的链表并进行排序
+	    				ArrayList<DataStruct> dataList = new ArrayList<DataStruct>();
+	    				for(int temp : listMore) {
+	    					dataList.add(objectList.get(temp));
+	    				}
+    					//排序
+    					for(int i2=0;i2<dataList.size()-1;i2++){//外层循环控制排序趟数
+    						for(int j=0;j<dataList.size()-1-i2;j++){
+    						//内层循环控制每一趟排序多少次
+    							if(DataStruct.comparator(dataList.get(j), dataList.get(j+1), attrNameOfKey)>0){
+    								DataStruct temp1=dataList.get(j);
+    								dataList.set(j, dataList.get(j+1));
+    								dataList.set(j+1,temp1);
+    							}
+    						}
+    					}
+    					for(int i =0;i<dataList.size();i++) {
+    						int result = compareDataStruct2Key(key,attrNameOfKey,dataList.get(i));
+    						if(result==0) {
+    							//从右往左第一个data的Pre
+    							DataStruct dataPreFirst = dataList.get(i-1);
+    							//对前缀key进行赋值,方便把与所有的前缀key相同的dataList中的数据筛选出来
+    							InstanceKey keyPreFirst = new InstanceKey();
+    							for(int i1 = 0;i1<keyOriginal.multiAtr.size();i1++) {
+    								keyPreFirst.multiAtr.add(dataPreFirst.getByName(attrNameOfKey.get(i1)));
+    								
+    							}
+    							
+//    							listResult.add(Integer.parseInt((dataPreFirst.getByName("id"))));
+    							//从右往左开始,把与keyPreList相同的dataStruct的tupleId收集到listResult中
+    							for(int loc = i-1;loc>=0;loc--) {
+    								if(compareDataStruct2Key((K)keyPreFirst,attrNameOfKey,dataList.get(loc))==0) {
+    									listResult.add(Integer.parseInt((dataList.get(loc).getByName("id"))));
+    								}
+    								else {
+//    									return (Entry<K, V>) new HashMap().put(key, listResult);
+    				    				return new SimpleEntry<K, V>( key, (V)listResult);
+
+    								}
+    							}
+    							return new SimpleEntry<K, V>( key, (V)listResult);
+    							
+    						}
+    					}
+//	    			return (Entry<K, V>) new HashMap().put(key, listResult);
+	    				return (Entry<K, V>) new SimpleEntry<InstanceKey, ArrayList<Integer>>((InstanceKey) key, listResult);
+
+	    			} else if (comp < 0) {
+	    				low = mid + 1;
+	    			} else {
+	    				high = mid - 1;
+	    			}
+	    		}
+            //未找到所要查询的对象 
+            return null; 
+        }
+        //如果不是叶子节点 
+        //如果key小于节点最左边的key，沿第一个子节点继续搜索 
+        if (key.compareTo(entries.get(0).getKey()) < 0) { 
+            return children.get(0).getMoreDetailedAtrributeTupleID_Pre( key, tid ,attrNameOfKey, objectList,tree); 
+        //如果key大于等于节点最右边的key，沿最后一个子节点继续搜索 
+        }else if (key.compareTo(entries.get(entries.size()-1).getKey()) >= 0) { 
+            return children.get(children.size()-1).getMoreDetailedAtrributeTupleID_Pre( key, tid ,attrNameOfKey, objectList,tree); 
+        //否则沿比key大的前一个子节点继续搜索 
+        }else { 
+            int low = 0, high = entries.size() - 1, mid= 0;
+            int comp ;
+        		while (low <= high) {
+        			mid = (low + high) / 2;
+        			comp = entries.get(mid).getKey().compareTo(key);
+        			if (comp == 0) {
+        				return children.get(mid+1).getMoreDetailedAtrributeTupleID_Pre( key, tid ,attrNameOfKey, objectList,tree); 
+        			} else if (comp < 0) {
+        				low = mid + 1;
+        			} else {
+        				high = mid - 1;
+        			}
+        		}
+        	return children.get(low).getMoreDetailedAtrributeTupleID_Pre( key, tid ,attrNameOfKey, objectList,tree);
+        } 
+    }
+
+    public Entry<K,V> getMoreDetailedAtrributeTupleID(K key,ArrayList<String> attrNameOfKey,
+    		ArrayList<DataStruct> objectList) { 
+    	 
+        //如果是叶子节点 
+        if (isLeaf) { 
+	        	int low = 0, high = entries.size() - 1, mid;
+	            int comp ;
+	    		while (low <= high) {
+	    			mid = (low + high) / 2;
+	    			comp = entries.get(mid).getKey().compareTo(key);
+	    			if (comp == 0) {
+	    				//listMore内存储   索引树的精细度下的与key相同的tupleId
+	    				ArrayList<Integer> listMore = new ArrayList<Integer>();
+	    				//listResult内存储   key的精细度下的与key相同的tupleId
+	    				ArrayList<Integer> listResult = new ArrayList<Integer>();
+	    				//把左右方向(包括不同BplusNode上的 与key相同的tupleId全收集起来
+	    				addList2Left(mid-1, key, listMore, this);
+	    				addList2Right(mid+1, key, listMore, this);
+	    				listMore.addAll((ArrayList<Integer>) entries.get(mid).getValue());
+	    				//对listMode里面的数据进行筛选,选出符合精细key的tupleId
+	    				for(int temp : listMore) {
+	    					DataStruct data = objectList.get(temp);
+	    					int result = compareDataStruct2Key(key,attrNameOfKey,data);
+	    					if(result == 0)
+	    						listResult.add(temp);
+	    				}
+	    				return (Entry<K, V>) new SimpleEntry<InstanceKey, ArrayList<Integer>>((InstanceKey) key, listResult);
+	    			} else if (comp < 0) {
+	    				low = mid + 1;
+	    			} else {
+	    				high = mid - 1;
+	    			}
+	    		}
+            //未找到所要查询的对象 
+            return null; 
+        }
+        //如果不是叶子节点 
+        //如果key小于节点最左边的key，沿第一个子节点继续搜索 
+        if (key.compareTo(entries.get(0).getKey()) < 0) { 
+            return children.get(0).getMoreDetailedAtrributeTupleID(key,attrNameOfKey,objectList); 
+        //如果key大于等于节点最右边的key，沿最后一个子节点继续搜索 
+        }else if (key.compareTo(entries.get(entries.size()-1).getKey()) >= 0) { 
+            return children.get(children.size()-1).getMoreDetailedAtrributeTupleID(key,attrNameOfKey,objectList); 
+        //否则沿比key大的前一个子节点继续搜索 
+        }else { 
+            int low = 0, high = entries.size() - 1, mid= 0;
+            int comp ;
+        		while (low <= high) {
+        			mid = (low + high) / 2;
+        			comp = entries.get(mid).getKey().compareTo(key);
+        			if (comp == 0) {
+        				return children.get(mid+1).getMoreDetailedAtrributeTupleID(key,attrNameOfKey,objectList); 
+        			} else if (comp < 0) {
+        				low = mid + 1;
+        			} else {
+        				high = mid - 1;
+        			}
+        		}
+        		return children.get(low).getMoreDetailedAtrributeTupleID(key,attrNameOfKey,objectList);
+        } 
+    }
+    //查找比key更精细的key+CDEF...属性的tupleID
+    public void addList2Left(int mid,K key,ArrayList<Integer> listMore,BplusNode<K,V> node) {
+    	
+
+		while(mid>=0) {
+			//如果在同一个树节点entries内部,key(精细) == key(b+树内粗糙),
+			//则也把entries(mid-1)内的tupleId放到listmore中待筛选
+			if(key.compareTo(entries.get(mid).getKey())==0) {
+				listMore.addAll(entries.get(mid).getValue());
+			}
+			else {
+//				listMore.addAll(entries.get(mid).getValue());
+				return;
+			}
+			mid--;
+		}
+		//如果mid到了尽头,那就去preNode中寻找key(精细) == key(b+树内粗糙)的entries节点的tupleID
+		if(mid<0) {
+			if(node.previous!=null) {
+				//node节点的前一个节点内,也有跟精细key相同的节点
+//				return node.previous.entries.get(previous.entries.size()-1);	
+				addList2Left(node.previous.entries.size(),key,listMore,node.previous);
+			}
+			else {
+				return ;
+			}
+		}
+
+    }
+public void addList2Right(int mid,K key,ArrayList<Integer> listMore,BplusNode<K,V> node) {
+    	
+
+		while(mid<node.entries.size()) {
+			//如果在同一个树节点entries内部,key(精细) == key(b+树内粗糙),
+			//则也把entries(mid-1)内的tupleId放到listmore中待筛选
+			if(key.compareTo(entries.get(mid).getKey())==0) {
+				listMore.addAll(entries.get(mid).getValue());
+			}
+			else {
+//				listMore.addAll(entries.get(mid).getValue());
+				return;
+			}
+			mid++;
+		}
+		if(mid>=node.entries.size()) {
+			if(node.next!=null) {
+				//node节点的前一个节点内,也有跟精细key相同的节点
+//				return node.previous.entries.get(previous.entries.size()-1);	
+				addList2Right(0,key,listMore,node.next);
+			}
+			else {
+				return ;
+			}
+		}
+
+    }
+    
+    //查找前缀属性为key对应节点的前节点的tupleId组
+    public Entry<K,V> getPrefixAtrributeTupleID_Pre(K key,int tid, BplusTree<K,V> tree) { 
+        
+        //如果是叶子节点 
+        if (isLeaf) { 
+	        	int low = 0, high = entries.size() - 1, mid;
+	            int comp ;
+	    		while (low <= high) {
+	    			mid = (low + high) / 2;
+	    			comp = entries.get(mid).getKey().compareTo(key);
+	    			if (comp == 0) {
+	    				Entry<K, V> pre = getPre(key, tid, tree);
+	    				
+	    				if(pre==null) {
+	    					return null;
+	    				}
+	    				else {
+	    					InstanceKey instanceKey1 = new InstanceKey();
+	    					InstanceKey instanceKey2 = new InstanceKey();
+	    					instanceKey1 = (InstanceKey) pre.getKey();
+	    					instanceKey2 = (InstanceKey) key;
+	    					ArrayList<String> preKeyAfter = new ArrayList<>();
+	    					ArrayList<String> preKeyBefore = instanceKey1.multiAtr;
+	    					for(int i =0;i<instanceKey2.multiAtr.size();i++) {
+	    						preKeyAfter.add(preKeyBefore.get(i));
+	    					}
+	    					instanceKey1.multiAtr = preKeyAfter;
+	    					return tree.getPrefixAtrributeTupleID((K)instanceKey1);
+	    				}
+	    			}
+	    			else if (comp < 0) {
+	    				low = mid + 1;
+	    			} else {
+	    				high = mid - 1;
+	    			}
+	    		}
+    		InstanceKey instanceKey = new InstanceKey();
+    		instanceKey = (InstanceKey)key;
+    		for(int i=0;i<15;i++)
+    		instanceKey.multiAtr.add("FillWithNoneMeaningValue");
+            //未找到所要查询的对象 
+    		insertOrUpdate((K)instanceKey, tid);
+        	Entry<K, V> e = getPrefixAtrributeTupleID_Pre((K)instanceKey, tid,tree);
+        	remove((K)instanceKey, tid,tree);
+            return e;
+        }
+      //如果不是叶子节点 
+      //如果key小于节点最左边的key，沿第一个子节点继续搜索 
+      if (key.compareTo(entries.get(0).getKey()) < 0) { 
+          return children.get(0).getPrefixAtrributeTupleID_Pre(key, tid, tree); 
+      //如果key大于等于节点最右边的key，沿最后一个子节点继续搜索 
+      }else if (key.compareTo(entries.get(entries.size()-1).getKey()) >= 0) { 
+          return children.get(children.size()-1).getPrefixAtrributeTupleID_Pre(key, tid, tree); 
+      //否则沿比key大的前一个子节点继续搜索 
+      }else { 
+          int low = 0, high = entries.size() - 1, mid= 0;
+          int comp ;
+      		while (low <= high) {
+      			mid = (low + high) / 2;
+      			comp = entries.get(mid).getKey().compareTo(key);
+      			if (comp == 0) {
+      				return children.get(mid+1).getPrefixAtrributeTupleID_Pre(key, tid, tree); 
+      			} else if (comp < 0) {
+      				low = mid + 1;
+      			} else {
+      				high = mid - 1;
+      			}
+      		}
+      		return children.get(low).getPrefixAtrributeTupleID_Pre(key, tid, tree);
+      }
+		
+    }
+  //查找前缀属性为key对应节点的后节点的tupleId组
+    public Entry<K,V> getPrefixAtrributeTupleID_Next(K key,int tid, BplusTree<K,V> tree) { 
+        
+        //如果是叶子节点 
+        if (isLeaf) { 
+	        	int low = 0, high = entries.size() - 1, mid;
+	            int comp ;
+	    		while (low <= high) {
+	    			mid = (low + high) / 2;
+	    			comp = entries.get(mid).getKey().compareTo(key);
+	    			if (comp == 0) {
+	    				Entry<K, V> next = getNext(key, tid, tree);
+	    				if(next==null) {
+	    					return null;
+	    				}
+	    				else {
+	    					InstanceKey instanceKey1 = new InstanceKey();
+	    					InstanceKey instanceKey2 = new InstanceKey();
+	    					instanceKey1 = (InstanceKey) next.getKey();
+	    					instanceKey2 = (InstanceKey) key;
+	    					ArrayList<String> nextKeyAfter = new ArrayList<>();
+	    					ArrayList<String> nextKeyBefore = instanceKey1.multiAtr;
+	    					for(int i =0;i<instanceKey2.multiAtr.size();i++) {
+	    						nextKeyAfter.add(nextKeyBefore.get(i));
+	    					}
+	    					instanceKey1.multiAtr = nextKeyAfter;
+	    					return tree.getPrefixAtrributeTupleID((K)instanceKey1);
+	    				}
+	    			}else if (comp < 0) {
+	    				low = mid + 1;
+	    			} else {
+	    				high = mid - 1;
+	    			}
+	    		}
+    		InstanceKey instanceKey = new InstanceKey();
+    		instanceKey = (InstanceKey)key;
+    		for(int i=0;i<15;i++)
+    		instanceKey.multiAtr.add("FillWithNoneMeaningValue");
+            //未找到所要查询的对象 
+    		insertOrUpdate((K)instanceKey, tid);
+        	Entry<K, V> e = getPrefixAtrributeTupleID_Next((K)instanceKey, tid,tree);
+        	remove((K)instanceKey, tid,tree);
+            return e;
+        }
+      //如果不是叶子节点 
+      //如果key小于节点最左边的key，沿第一个子节点继续搜索 
+      if (key.compareTo(entries.get(0).getKey()) < 0) { 
+          return children.get(0).getPrefixAtrributeTupleID_Next(key, tid,tree); 
+      //如果key大于等于节点最右边的key，沿最后一个子节点继续搜索 
+      }else if (key.compareTo(entries.get(entries.size()-1).getKey()) >= 0) { 
+          return children.get(children.size()-1).getPrefixAtrributeTupleID_Next(key, tid,tree); 
+      //否则沿比key大的前一个子节点继续搜索 
+      }else { 
+          int low = 0, high = entries.size() - 1, mid= 0;
+          int comp ;
+      		while (low <= high) {
+      			mid = (low + high) / 2;
+      			comp = entries.get(mid).getKey().compareTo(key);
+      			if (comp == 0) {
+      				return children.get(mid+1).getPrefixAtrributeTupleID_Next(key, tid,tree);
+      			} else if (comp < 0) {
+      				low = mid + 1;
+      			} else {
+      				high = mid - 1;
+      			}
+      		}
+      		return children.get(low).getPrefixAtrributeTupleID_Next(key, tid,tree);
+      }
+		
+    }
+	    			
+	    		
+        
+        
+        
+
+  //查找前缀属性为key对应节点的tupleId组
+    public Entry<K,V> getPrefixAtrributeTupleID(K key) { 
+        
+        //如果是叶子节点 
+        if (isLeaf) { 
+	        	int low = 0, high = entries.size() - 1, mid;
+	            int comp ;
+	    		while (low <= high) {
+	    			mid = (low + high) / 2;
+	    			comp = entries.get(mid).getKey().compareTo(key);
+	    			if (comp == 0) {
+	    				
+	    				ArrayList<Integer> resultList = new ArrayList<>();
+	    				ArrayList<Integer> list = new ArrayList<>();
+	    				//loc  node内找entries的pre和next
+	    				//p  node外的pre和next
+	    				
+	    				BplusNode<K, V> p = null;
+	    				
+	    				int loc = 0;
+	    				loc = innerPrefixMergeLeft(mid, key, resultList);
+	    				if(loc>=this.entries.size()) {
+	    				p = this.previous;
+	    				while(p!=null) {
+	    					loc = p.innerPrefixMergeRight(p.entries.size()-1, key, resultList);
+	    					if(!(loc<0)) {
+	    						break;
+	    					}
+	    					p = p.previous;
+	    				}
+	    				}
+	    				loc = 0;
+	    				loc = innerPrefixMergeRight(mid-1, key, resultList);
+	    				if(loc<0) {
+	    				p = this.next;
+	    				while(p!=null) {
+	    					loc = p.innerPrefixMergeLeft(0, key, resultList);
+	    					if(!(loc>=p.entries.size())) {
+	    						break;
+	    					}
+	    					p = p.next;
+	    				}
+	    				}
+	    				Entry<K,V> entry = new SimpleEntry(key, resultList);	    				
+	    				return entry;	    				 
+	    				
+	    			} else if (comp < 0) {
+	    				low = mid + 1;
+	    			} else {
+	    				high = mid - 1;
+	    			}
+	    		}
+            //未找到所要查询的对象 
+
+            return null; 
+        }
+        //如果不是叶子节点 
+        //如果key小于节点最左边的key，沿第一个子节点继续搜索 
+        if (key.compareTo(entries.get(0).getKey()) < 0) { 
+            return children.get(0).getPrefixAtrributeTupleID(key); 
+        //如果key大于等于节点最右边的key，沿最后一个子节点继续搜索 
+        }else if (key.compareTo(entries.get(entries.size()-1).getKey()) >= 0) { 
+            return children.get(children.size()-1).getPrefixAtrributeTupleID(key); 
+        //否则沿比key大的前一个子节点继续搜索 
+        }else { 
+            int low = 0, high = entries.size() - 1, mid= 0;
+            int comp ;
+        		while (low <= high) {
+        			mid = (low + high) / 2;
+        			comp = entries.get(mid).getKey().compareTo(key);
+        			if (comp == 0) {
+        				return children.get(mid+1).getPrefixAtrributeTupleID(key); 
+        			} else if (comp < 0) {
+        				low = mid + 1;
+        			} else {
+        				high = mid - 1;
+        			}
+        		}
+        		return children.get(low).getPrefixAtrributeTupleID(key);
+        } 
+    } 
+    
     //得到子节点的前一个节点
     public Entry<K,V> getPre(K key,int tid, BplusTree<K,V> tree) {
         //如果是叶子节点 
@@ -52,17 +656,30 @@ public class BplusNode <K extends Comparable<K>, V extends List> {
 	    			if (comp == 0) {
 	    				//找到k的节点后,返回k的前一个节点
 	    				//如果是最前面的叶子结点,则去前一棵叶子组上找最后一个节点
-	    				if(mid-1<0) {
+	    				
+	    				
+	    				
+	    				while(mid>=0&&(entries.get(mid).getKey().compareTo(key)==0)) {
+	    					mid--;
+	    				}
+	    				//mid小于零,则在此entries上,不存在前缀
+	    				if(mid<0) {
 	    					if(previous!=null)
-	    					return previous.entries.get(previous.entries.size()-1);	
+	    						return previous.getPre(key,tid,tree);	
+//	    					return previous.entries.get(previous.entries.size()-1);	
 	    					else {
 //	    						System.out.println("此节点就是最前面的叶子结点了,将其插入后退出");
 //	    						insertOrUpdate(key, tid);
 	    						return null;
 	    					}
 	    				}
-	    				else 
-	    					return entries.get(mid-1);
+	    				//mid>=零,则在此entries上,存在前缀
+	    				else if((mid>=0)&&(entries.get(mid).getKey().compareTo(key)!=0))
+	    					return entries.get(mid);
+	    				
+	    				
+	    				
+	    				
 	    			} else if (comp < 0) {
 	    				low = mid + 1;
 	    			} else {
@@ -115,18 +732,41 @@ public class BplusNode <K extends Comparable<K>, V extends List> {
 	    			if (comp == 0) {
 	    				//找到k的节点后,返回k的前一个节点
 	    				//如果是最前面的叶子结点,则去前一棵叶子组上找最后一个节点
-	    				if(mid>=entries.size()-1) {
+	    				
+	    				
+	    				
+	    				while(mid<entries.size()&&(entries.get(mid).getKey().compareTo(key)==0)) {
+	    					mid++;
+	    				}
+	    				//mid小于零,则在此entries上,不存在前缀
+	    				if(mid>=entries.size()) {
 	    					if(next!=null)
-	    					return next.entries.get(0);	
+	    						return next.getNext(key,tid,tree);	
+//	    					return previous.entries.get(previous.entries.size()-1);	
 	    					else {
-//	    						System.out.println("此节点就是最后面的叶子结点了,插入后退出");
+//	    						System.out.println("此节点就是最前面的叶子结点了,将其插入后退出");
 //	    						insertOrUpdate(key, tid);
 	    						return null;
 	    					}
-	    					
 	    				}
-	    				else 
-	    					return entries.get(mid+1);
+	    				//mid>=零,则在此entries上,存在前缀
+	    				else if((mid<entries.size())&&(entries.get(mid).getKey().compareTo(key)!=0))
+	    					return entries.get(mid);
+//	    			if (comp == 0) {
+//	    				//找到k的节点后,返回k的前一个节点
+//	    				//如果是最前面的叶子结点,则去前一棵叶子组上找最后一个节点
+//	    				if(mid>=entries.size()-1) {
+//	    					if(next!=null)
+//	    					return next.entries.get(0);	
+//	    					else {
+////	    						System.out.println("此节点就是最后面的叶子结点了,插入后退出");
+////	    						insertOrUpdate(key, tid);
+//	    						return null;
+//	    					}
+//	    					
+//	    				}
+//	    				else 
+//	    					return entries.get(mid+1);
 	    			} else if (comp < 0) {
 	    				low = mid + 1;
 	    			} else {
@@ -334,7 +974,8 @@ public class BplusNode <K extends Comparable<K>, V extends List> {
 			}else {
 				//左边的树插满,再插右边的
 				if(!b&&entries.get(i).getKey().compareTo(key) > 0){
-					List list = entries.get(i).getValue();
+					List list = new ArrayList<>();
+					list.add(tid);
 					right.entries.add(new SimpleEntry<K, V>(key, (V) list));
 					b = true;
 					i--;
@@ -349,7 +990,34 @@ public class BplusNode <K extends Comparable<K>, V extends List> {
 			right.entries.add(new SimpleEntry<K, V>(key, (V) list));
 		}
 	} 
-     
+     /**
+      * 节点内部,前缀属性相同值的list合并函数(mid--)
+      */
+	public int innerPrefixMergeLeft(int mid, K key,ArrayList<Integer> resultList) {
+		int loc =mid;
+		while(loc>=0&&loc<this.entries.size()) {
+			if(key.compareTo(this.entries.get(loc).getKey())==0) {
+				ArrayList<Integer> list = (ArrayList<Integer>) entries.get(loc).getValue();
+				resultList.addAll(list);
+			}
+			loc++;
+		}
+		return loc;
+	}
+    /**
+     * 节点内部,前缀属性相同值的list合并函数(mid++)
+     */
+	public int innerPrefixMergeRight(int mid, K key,ArrayList<Integer> resultList) {
+		int loc =mid;
+		while(loc>=0&&loc<this.entries.size()) {
+			if(key.compareTo(this.entries.get(loc).getKey())==0) {
+				ArrayList<Integer> list = (ArrayList<Integer>) entries.get(loc).getValue();
+				resultList.addAll(list);
+			}
+			loc--;
+		}
+		return loc;
+	}
     /** 插入节点后中间节点的更新 */ 
     protected void updateInsert(BplusTree<K,V> tree){ 
          
@@ -743,6 +1411,20 @@ public class BplusNode <K extends Comparable<K>, V extends List> {
     		}
         return null;
     }   
+    //key内只存储了属性值,没有属性名,所以添加一个attrNameOfKey来与DataStruct进行比较
+    public  int compareDataStruct2Key(K key,ArrayList<String> attrNameOfKey,DataStruct data) {
+    	InstanceKey instanckey = (InstanceKey)key;
+    	int result = 0;
+    	for(int i =0;i<attrNameOfKey.size();i++) {
+    		String a = instanckey.multiAtr.get(i);
+    		String b = data.getByName(attrNameOfKey.get(i));
+    		result = Cmp.compare(a,b);
+    		if(result!=0) {
+    			return result;
+    		}
+    	}
+    	return result;
+    }
     public String toString(){ 
         StringBuilder sb = new StringBuilder(); 
         sb.append("isRoot: "); 

@@ -1,17 +1,23 @@
 package Test;
 import java.util.Map.Entry;
 
-import BplusTree.BplusTree;
-import BplusTree.InstanceKey;
+import BplusTree.*;
 import Data.*;
 import OD.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class ReadandCheck {
 	public static boolean debug=true;
-	final private static int order = 10;
+	public final static int order = 10;
+	public static int tn=0;//tn表示当前建立索引树的数目
+	private final static String dataFileName=new String("data100k.csv");
+	private final static String increFileName=new String("batchIncrementalData.csv");
+	private final static String odFileName=new String("od2.txt");
+	public static HashMap<ArrayList<String>,Integer> treeMap=new HashMap<>(); 
+	public static ArrayList<BplusTree<InstanceKey, ArrayList<Integer>> > bptree=new ArrayList<>(); 
 	public static CSVtoDataObject cdo = new CSVtoDataObject();
 	private static CSVtoDataObject ind=new CSVtoDataObject();
 	private static ODs od=new ODs();
@@ -26,31 +32,44 @@ public static void main(String[] args) {
 		
    	    dataInitial();
 		
-		if(debug) {
-			/*将读入的od输出*/
-			System.out.println("The original od is:");
+		
+		/*将读入的od输出*/
+		System.out.println("The original od is:");
+		od.print();
+		System.out.println("共有"+objectList.size()+"条数据\n共有"+iObjectList.size()+"条增量数据");
+	
+	//iObjectList.size()
+		for(int i=2;i<4;i++) {
+			System.out.println("第"+i+"次插入..");
+			checkAllOD(originalODList,i);
+			
+			printList(incorrectODList,"incorrrect list:");
+			
+			enrichment();
+			
+			printList(enrichODList,"\n\nNot checked enrichment ods is:");
+			
+			checkAllOD(enrichODList,i);
+			
+			printList(enrichODList,"\n\nThe enrichment ods is:");
+			
+			for(OrderDependency o:enrichODList) {
+				od.ods.add(o);
+			}
+			listClear();
+			
+			if(od.ods.isEmpty()) {
+				System.out.println("There is no od left in this data");
+				return;
+			}
+			//将增量数据插入到原始数据中，为下一个增量数据做准备
+			iObjectList.get(i).setId(Integer.toString(objectList.size()));
+			objectList.add(iObjectList.get(i));
+			Index.updateTrees(objectList.get(objectList.size()-1));
+			
+			System.out.println("第"+i+"次插入，od剩余"+od.ods.size()+"条");
 			od.print();
 			
-//			DataStruct.printAttrName();
-//			for(DataStruct obj:objectList) {
-//				obj.printSingleData();
-//			}
-			System.out.println("共有"+objectList.size()+"条数据");
-			System.out.println("增量数据");
-			for(DataStruct obj:iObjectList) {
-				obj.printSingleData();
-			}
-		}
-	
-		checkAllOD(originalODList);
-		
-		enrichment();
-		checkAllOD(enrichODList);
-		
-		
-		System.out.println("\n\n\nThe enrichment ods is:");
-		for(OrderDependency o:enrichODList) {
-			o.printOD();
 		}
 		
 		System.out.println("\n\n\nThe latest ods is:");
@@ -59,62 +78,37 @@ public static void main(String[] args) {
 	}
 	
 	
-	private static void dataInitial() {
-		try{
-			od.storeOD("od.txt");
-			cdo.readCSVData("test.csv");
-			ind.readCSVData("incrementalData.csv");
-		}catch(Exception e) {
-			System.out.println("read fail!");
-		}
-		
-		//存储所有原有的od
-		for(OrderDependency o:od.ods) {
-			originalODList.add(o);
-		}
-		
-		objectList = cdo.datatoObject();
-		iObjectList=ind.datatoObject();
-		
-	}
-	
-	private static void checkAllOD(ArrayList<OrderDependency> checkedOD) {
-		
+	private static void checkAllOD(ArrayList<OrderDependency> checkedOD,int increTuple) {
 		//对每一条od进行验证
 		for(OrderDependency nod:checkedOD) {
 			
-			//build B+ tree
-			BplusTree<InstanceKey, ArrayList<Integer>> tree = new BplusTree<InstanceKey, ArrayList<Integer>>(order);		
-			
-			for (int i=0;i<objectList.size();i++) {
-				DataStruct temp=objectList.get(i);
-				tree.insertOrUpdate(new InstanceKey(nod.getLHS(),temp),i);
+			int treeNumber=treeMap.getOrDefault(nod.getLHS(),-1);
+			if(treeNumber==-1) {
+				Index.buildTree(nod.getLHS());
+				treeNumber=treeMap.getOrDefault(nod.getLHS(),-1);
 			}
+			if(debug) System.out.println("tree number= "+treeNumber);
+			//将增量的数据放到原始数据集的最后一行
+			iObjectList.get(increTuple).setId(Integer.toString(objectList.size()));
+			objectList.add(iObjectList.get(increTuple));
 			
 			ArrayList<Integer> preList,nextList,curList,increList=new ArrayList<Integer>();
-			
-			
-			InstanceKey key=new InstanceKey(nod.getLHS(),iObjectList.get(0));
-			curList=tree.get(key);
-			curList=curList==null?new ArrayList<Integer>():curList;
-			
-			
-			//将增量的数据放到原始数据集的最后一行
-			objectList.add(iObjectList.get(0));
-			
-			
-			Entry<InstanceKey,ArrayList<Integer>> pre=tree.getPre(key,objectList.size()-1);
-			preList=pre==null?new ArrayList<Integer>():pre.getValue();
-			
-			Entry<InstanceKey,ArrayList<Integer>> next=tree.getNext(key,objectList.size()-1);
-			nextList=next==null?new ArrayList<Integer>():next.getValue();
 			
 			//最后一行是增量数据
 			increList.add(objectList.size()-1);
 			
+			InstanceKey key=new InstanceKey(nod.getLHS(),iObjectList.get(increTuple));
+			curList=bptree.get(treeNumber).get(key);
+			curList=curList==null?new ArrayList<Integer>():curList;
 			
 			
-			if(debug&&(!curList.isEmpty())) {
+			Entry<InstanceKey,ArrayList<Integer>> pre=bptree.get(treeNumber).getPre(key,objectList.size()-1);
+			preList=pre==null?new ArrayList<Integer>():pre.getValue();
+			
+			Entry<InstanceKey,ArrayList<Integer>> next=bptree.get(treeNumber).getNext(key,objectList.size()-1);
+			nextList=next==null?new ArrayList<Integer>():next.getValue();
+			
+			if(debug) {
 				System.out.print("\n\nThe current data is tuple: ");
 				for(Integer i:curList) {
 					System.out.print(i+" ");
@@ -153,6 +147,16 @@ public static void main(String[] args) {
 			objectList.remove(objectList.size()-1);
 		}
 	}
+	public static void enrichment() {
+		if(incorrectODList.isEmpty()) return;
+		for(OrderDependency iod:incorrectODList) {
+			for(OrderDependency ood:originalODList) {
+				if(iod.getLHS().size()<ood.getLHS().size()&&ood.isEqual(iod)==false&&ood.isContain(iod)!=-1) {
+					enrichSingleOD(ood,iod,ood.isContain(iod));
+				}
+			}
+		}
+	}
 	
 	//od:需要被扩展的od，iod：错误的od，it：需要插入iod右边的起始index.最后都放到enrichODList中
 	public static void enrichSingleOD(OrderDependency od,OrderDependency iod,int it) {
@@ -171,14 +175,38 @@ public static void main(String[] args) {
 		
 	}
 	
-	public static void enrichment() {
-		if(incorrectODList.isEmpty()) return;
-		for(OrderDependency iod:incorrectODList) {
-			for(OrderDependency ood:originalODList) {
-				if(iod.getLHS().size()<ood.getLHS().size()&&ood.isEqual(iod)==false&&ood.isContain(iod)!=-1) {
-					enrichSingleOD(ood,iod,ood.isContain(iod));
-				}
-			}
+	
+	private static void listClear() {
+		incorrectODList.clear();
+		enrichODList.clear();
+		originalODList.clear();
+		//存储所有原有的od
+		for(OrderDependency o:od.ods) {
+			originalODList.add(o);
+		}
+	}
+	private static void dataInitial() {
+		try{
+			od.storeOD(odFileName);
+			cdo.readCSVData(dataFileName);
+			ind.readCSVData(increFileName);
+		}catch(Exception e) {
+			System.out.println("read fail!");
+		}
+
+		listClear();
+		objectList = cdo.datatoObject();
+		iObjectList=ind.datatoObject();
+		
+		Index.buildTrees(originalODList);
+		
+		
+	}
+	
+	public static void printList(ArrayList<OrderDependency> list,String sentence) {
+		if(list.isEmpty()==false) System.out.println(sentence);
+		for(OrderDependency od:list) {
+			od.printOD();
 		}
 	}
 	

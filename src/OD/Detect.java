@@ -30,7 +30,7 @@ public class Detect {
 		DataStruct curData=curList.isEmpty()?null:ReadandCheck.objectList.get(curList.get(0));
 		DataStruct increData=ReadandCheck.objectList.get(increList.get(0));
 		
-		System.out.print("\n\n\nchecking od: ");
+		System.out.print("\nchecking od: ");
 		od.printOD();
 		if (ReadandCheck.debug) {
 			System.out.print("ATTR_NAME: ");

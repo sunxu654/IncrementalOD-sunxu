@@ -18,7 +18,6 @@ public class Extend {
 		nextList = next;
 		curList = cur;
 		increList = incre;
-		//objectList = objList;
 	}
 
 	// 最终返回的是所有的符合条件的OD的一个list
@@ -161,7 +160,7 @@ public class Extend {
 					odIncre.getLHS().add(adder);
 					res.add(new OrderDependency(odIncre));
 					odIncre.copy(od);
-				} else if (!splitList.isEmpty()&&splitList.size()!=curList.size()) {
+				} else if (!splitList.isEmpty()&&splitList.size()<curList.size()) {
 					if (ReadandCheck.debug) System.out.println("递归查找...");
 					odIncre.getLHS().add(adder);
 					ArrayList<OrderDependency> newOD = new ArrayList<OrderDependency>();
