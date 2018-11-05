@@ -44,15 +44,15 @@ public class BplusTree <K extends Comparable<K>, V extends ArrayList>{
 	public Entry<K,V> getMoreDetailedAtrributeTupleID(K key,ArrayList<String> attrNameOfKey,ArrayList<DataStruct> objectList) {
 		return root.getMoreDetailedAtrributeTupleID(key, attrNameOfKey, objectList);
 	}
-	public Entry<K,V> getMoreDetailedAtrributeTupleID_Pre(K key,int tid ,ArrayList<String> attrNameOfKey, ArrayList<DataStruct> objectList,BplusTree<K,V> tree) {
-		return root.getMoreDetailedAtrributeTupleID_Pre(key, tid, attrNameOfKey, objectList, tree);
-	}
-	
-	public Entry<K,V> getMoreDetailedAtrributeTupleID_Next
-    (K key,int tid ,ArrayList<String> attrNameOfKey, ArrayList<DataStruct> objectList,BplusTree<K,V> tree) {
-		return root.getMoreDetailedAtrributeTupleID_Next(key, tid, attrNameOfKey, objectList, tree);
-	}
-	
+//	public Entry<K,V> getMoreDetailedAtrributeTupleID_Pre(K key,int tid ,ArrayList<String> attrNameOfKey, ArrayList<DataStruct> objectList,BplusTree<K,V> tree) {
+//		return root.getMoreDetailedAtrributeTupleID_Pre(key, tid, attrNameOfKey, objectList, tree);
+//	}
+//	
+//	public Entry<K,V> getMoreDetailedAtrributeTupleID_Next
+//    (K key,int tid ,ArrayList<String> attrNameOfKey, ArrayList<DataStruct> objectList,BplusTree<K,V> tree) {
+//		return root.getMoreDetailedAtrributeTupleID_Next(key, tid, attrNameOfKey, objectList, tree);
+//	}
+//	
 	
 	public Entry<K,V> getPrefixAtrributeTupleID_Pre(K key,int tid, BplusTree<K,V> tree) { 
 		return root.getPrefixAtrributeTupleID_Pre(key, tid, tree);
@@ -63,11 +63,11 @@ public class BplusTree <K extends Comparable<K>, V extends ArrayList>{
 	public Entry<K,V> getPrefixAtrributeTupleID(K key){
 		return root.getPrefixAtrributeTupleID(key);
 	}
-	public  Entry<K,V>  getPre(K key,int tid){
-		return root.getPre(key,tid,this);
+	public  K  getPre(K key,int tid){
+		return root.getPre(key,tid,this).getKey();
 	}
-	public  Entry<K,V> getNext(K key ,int tid){
-		return root.getNext(key,tid,this);
+	public  K getNext(K key ,int tid){
+		return root.getNext(key,tid,this).getKey();
 	}
 	public  Entry<K,V> getKey(K key){
 		return root.get(key);

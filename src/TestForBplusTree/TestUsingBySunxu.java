@@ -106,8 +106,8 @@ public class TestUsingBySunxu<K, V> {
 		int id = Integer.parseInt(objectList.get(loc).getByName("id"));
 		
 		printTupleListIfo( "getKey",tree.getKey(key), A,B);
-		printTupleListIfo("getPre",tree.getPre(key,id), A,B);
-		printTupleListIfo("getNext",tree.getNext(key, id), A,B);
+//		printTupleListIfo("getPre",tree.getPre(key,id), A,B);
+//		printTupleListIfo("getNext",tree.getNext(key, id), A,B);
 
 		key = new InstanceKey(prefixAtrrName, objectList.get(loc));
 		id = Integer.parseInt(objectList.get(loc).getByName("id"));
@@ -120,8 +120,8 @@ public class TestUsingBySunxu<K, V> {
 		key = new InstanceKey(moreDetailedAttrName, objectList.get(loc));
 		id = Integer.parseInt(objectList.get(loc).getByName("id"));
 		printTupleListIfo( "getMoreDetailedAtrributeTupleID",tree.getMoreDetailedAtrributeTupleID(key, moreDetailedAttrName, objectList), A,B,C);
-		printTupleListIfo("getMoreDetailedAtrributeTupleID_Pre",tree.getMoreDetailedAtrributeTupleID_Pre(key, id, moreDetailedAttrName, objectList, tree), A,B,C);
-		printTupleListIfo("getMoreDetailedAtrributeTupleID_Next",tree.getMoreDetailedAtrributeTupleID_Next(key, id, moreDetailedAttrName, objectList, tree), A,B,C);
+//		printTupleListIfo("getMoreDetailedAtrributeTupleID_Pre",tree.getMoreDetailedAtrributeTupleID_Pre(key, id, moreDetailedAttrName, objectList, tree), A,B,C);
+//		printTupleListIfo("getMoreDetailedAtrributeTupleID_Next",tree.getMoreDetailedAtrributeTupleID_Next(key, id, moreDetailedAttrName, objectList, tree), A,B,C);
 		long t5 = System.currentTimeMillis();
 		System.out.println("查询耗时："+ (t5-t4)+"ms");
 	}
